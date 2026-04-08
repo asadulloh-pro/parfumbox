@@ -1,0 +1,19 @@
+{
+  "name": "parfumbox",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev -w @parfumbox/api",
+    "dev:web": "npm run dev -w @parfumbox/web",
+    "build": "npm run build -w @parfumbox/api && npm run build -w @parfumbox/web",
+    "db:generate": "npm run prisma:generate -w @parfumbox/api",
+    "db:migrate": "npm run prisma:migrate -w @parfumbox/api",
+    "db:seed": "npm run prisma:seed -w @parfumbox/api",
+    "db:studio": "npm run prisma:studio -w @parfumbox/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
