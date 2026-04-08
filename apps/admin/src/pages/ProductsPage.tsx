@@ -19,6 +19,7 @@ import {
   useDeleteProductMutation,
   type ProductRow,
 } from '@/api/adminApi';
+import { ImageUrlField } from '@/features/product-image/ui/ImageUrlField';
 
 type FormValues = {
   slug: string;
@@ -130,6 +131,21 @@ export function ProductsPage() {
 
   const columns: TableProps<ProductRow>['columns'] = [
     { title: 'Slug', dataIndex: 'slug', width: 200, ellipsis: true },
+    {
+      title: 'Image',
+      key: 'img',
+      width: 72,
+      render: (_, row) =>
+        row.imageUrl ? (
+          <img
+            src={row.imageUrl}
+            alt=""
+            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }}
+          />
+        ) : (
+          '—'
+        ),
+    },
     { title: 'Name', dataIndex: 'name', ellipsis: true },
     {
       title: 'Price',
@@ -178,9 +194,7 @@ export function ProductsPage() {
       <Form.Item name="currency" label="Currency">
         <Input placeholder="USD" />
       </Form.Item>
-      <Form.Item name="imageUrl" label="Image URL">
-        <Input />
-      </Form.Item>
+      <ImageUrlField form={formCreate} />
       <Form.Item name="volumeMl" label="Volume (ml)">
         <InputNumber min={0} style={{ width: '100%' }} />
       </Form.Item>
@@ -210,9 +224,7 @@ export function ProductsPage() {
       <Form.Item name="currency" label="Currency">
         <Input placeholder="USD" />
       </Form.Item>
-      <Form.Item name="imageUrl" label="Image URL">
-        <Input />
-      </Form.Item>
+      <ImageUrlField form={formEdit} />
       <Form.Item name="volumeMl" label="Volume (ml)">
         <InputNumber min={0} style={{ width: '100%' }} />
       </Form.Item>

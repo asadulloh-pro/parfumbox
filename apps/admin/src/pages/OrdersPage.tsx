@@ -1,4 +1,4 @@
-import { Table, Select, Tag, Typography, Space } from 'antd';
+import { Table, Select, Typography, Space } from 'antd';
 import type { TableProps } from 'antd';
 import { useState } from 'react';
 import {

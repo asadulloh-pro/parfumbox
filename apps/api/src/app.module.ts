@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
@@ -10,7 +11,15 @@ import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // Nest emits to dist/src/*.js — __dirname is .../apps/api/dist/src (not .../dist).
+      // Load monorepo root .env first, then apps/api/.env (later overrides duplicate keys).
+      envFilePath: [
+        join(__dirname, '..', '..', '..', '..', '.env'),
+        join(__dirname, '..', '..', '.env'),
+      ],
+    }),
     PrismaModule,
     UsersModule,
     AuthModule,

@@ -5,6 +5,16 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { setToken } from '@/entities/session/model/sessionSlice';
 import { useEffect } from 'react';
 
+function formatApiError(err: unknown): string | null {
+  if (!err || typeof err !== 'object' || !('data' in err)) return null;
+  const data = (err as { data?: unknown }).data;
+  if (!data || typeof data !== 'object') return null;
+  const m = (data as { message?: unknown }).message;
+  if (typeof m === 'string') return m;
+  if (Array.isArray(m)) return m.filter(Boolean).join(', ');
+  return null;
+}
+
 export function LoginPage() {
   const token = useAppSelector((s) => s.session.token);
   const nav = useNavigate();
@@ -19,12 +29,16 @@ export function LoginPage() {
 
   const onFinish = async (values: { apiKey: string }) => {
     try {
-      const res = await login({ apiKey: values.apiKey }).unwrap();
+      const res = await login({ apiKey: values.apiKey.trim() }).unwrap();
       dispatch(setToken(res.accessToken));
       message.success('Signed in');
       nav('/orders', { replace: true });
-    } catch {
-      message.error('Invalid API key or server error');
+    } catch (err: unknown) {
+      const text = formatApiError(err);
+      message.error(
+        text ??
+          'Invalid API key or server error. Set ADMIN_API_KEY in the repo root .env (or apps/api/.env to override).',
+      );
     }
   };
 

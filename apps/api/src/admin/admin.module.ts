@@ -9,6 +9,8 @@ import { AdminClientsService } from './admin-clients.service';
 import { AdminClientsController } from './admin-clients.controller';
 import { AdminProductsService } from './admin-products.service';
 import { AdminProductsController } from './admin-products.controller';
+import { AdminUploadController } from './admin-upload.controller';
+import { UploadService } from '../upload/upload.service';
 
 @Module({
   imports: [AuthModule],
@@ -17,6 +19,7 @@ import { AdminProductsController } from './admin-products.controller';
     AdminOrdersController,
     AdminClientsController,
     AdminProductsController,
+    AdminUploadController,
   ],
   providers: [
     AdminAuthService,
@@ -24,6 +27,7 @@ import { AdminProductsController } from './admin-products.controller';
     AdminOrdersService,
     AdminClientsService,
     AdminProductsService,
+    UploadService,
   ],
 })
 export class AdminModule {}

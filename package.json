@@ -7,7 +7,8 @@
   "scripts": {
     "dev:api": "npm run start:dev -w @parfumbox/api",
     "dev:web": "npm run dev -w @parfumbox/web",
-    "build": "npm run build -w @parfumbox/api && npm run build -w @parfumbox/web",
+    "dev:admin": "npm run dev -w @parfumbox/admin",
+    "build": "npm run build -w @parfumbox/api && npm run build -w @parfumbox/web && npm run build -w @parfumbox/admin",
     "db:generate": "npm run prisma:generate -w @parfumbox/api",
     "db:migrate": "npm run prisma:migrate -w @parfumbox/api",
     "db:seed": "npm run prisma:seed -w @parfumbox/api",

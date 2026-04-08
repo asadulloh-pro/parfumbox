@@ -15,11 +15,12 @@ export class AdminAuthService {
   ) {}
 
   login(apiKey: string) {
-    const expected = this.config.get<string>('ADMIN_API_KEY');
+    const trimmed = apiKey.trim();
+    const expected = this.config.get<string>('ADMIN_API_KEY')?.trim();
     if (!expected || expected.length < 8) {
       throw new BadRequestException('ADMIN_API_KEY is not configured on the server');
     }
-    if (apiKey !== expected) {
+    if (trimmed !== expected) {
       throw new UnauthorizedException('Invalid credentials');
     }
 

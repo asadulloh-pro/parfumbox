@@ -31,6 +31,30 @@ npm run dev:web
 
 The Vite dev server proxies `/api` to `http://localhost:3000` (see `apps/web/vite.config.ts`).
 
+**Admin dashboard** (Ant Design, staff UI):
+
+```bash
+# Set ADMIN_API_KEY in the repo root `.env` or in `apps/api/.env` (the latter overrides). Include `http://localhost:5174` in `CORS_ORIGIN`.
+npm run dev:api
+npm run dev:admin
+```
+
+Open `http://localhost:5174`, sign in with the same `ADMIN_API_KEY` value. The admin app proxies `/api` like the mini app (see `apps/admin/vite.config.ts`).
+
+**Product images:** staff upload images on the Products screen (`POST /api/admin/upload`).
+
+- **MinIO (recommended):** set `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, and optionally `MINIO_BUCKET` / `MINIO_PUBLIC_URL` in `.env`. The API creates the bucket if missing and stores objects under `uploads/…`. Example local MinIO:
+
+  ```bash
+  docker run -p 9000:9000 -p 9001:9001 \
+    -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin \
+    quay.io/minio/minio server /data --console-address ":9001"
+  ```
+
+  Then set `MINIO_ENDPOINT=http://127.0.0.1:9000`, `MINIO_ACCESS_KEY=minioadmin`, `MINIO_SECRET_KEY=minioadmin`. For objects to load in the browser you may need a **public bucket policy** or a reverse proxy; `MINIO_PUBLIC_URL` can point at a CDN or the MinIO API base including bucket.
+
+- **Local disk (no MinIO):** omit `MINIO_ENDPOINT`. Files go to `apps/api/uploads/` and are served at `GET /uploads/:filename`. Set `PUBLIC_BASE_URL` so returned URLs match your public API host in production.
+
 ## Telegram Mini App URL (HTTPS)
 
 Telegram requires an **HTTPS** URL for the Mini App.
@@ -65,6 +89,7 @@ For PostgreSQL, set `DATABASE_URL` to a Postgres URL in `apps/api/.env` and run 
 
 ## Security checklist
 
-- Keep `TELEGRAM_BOT_TOKEN` and `JWT_SECRET` secret; never commit real `.env` files.
+- Keep `TELEGRAM_BOT_TOKEN`, `JWT_SECRET`, and `ADMIN_API_KEY` secret; never commit real `.env` files.
 - Set `AUTH_DEV_BYPASS=false` in production and use a real `TELEGRAM_BOT_TOKEN`.
 - Reject stale `initData` using `TELEGRAM_AUTH_MAX_AGE_SECONDS` (validated on the server).
+- Restrict who can reach the admin UI in production (VPN, IP allowlist, or private hostname); staff JWTs are still bearer tokens.
