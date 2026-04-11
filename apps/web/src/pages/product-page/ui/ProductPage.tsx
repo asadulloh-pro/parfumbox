@@ -1,97 +1,64 @@
-import { Button, Descriptions, Space, Spin, Typography } from 'antd';
-import { useParams } from 'react-router-dom';
-import { useGetProductBySlugQuery } from '@/shared/api/parfumApi';
-import { useAppDispatch } from '@/app/hooks';
-import { addOne } from '@/entities/cart/model/cartSlice';
-import { getTelegramWebApp } from '@/shared/lib/telegram';
-import { useEffect } from 'react';
+import { Button } from '@telegram-apps/telegram-ui';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  demoProducts,
+  formatPrice,
+} from '../../../shared/mocks/demo-products';
 
 export function ProductPage() {
-  const { slug = '' } = useParams();
-  const { data, isLoading, isError } = useGetProductBySlugQuery(slug);
-  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const product = demoProducts.find((p) => p.id === id);
 
-  useEffect(() => {
-    const twa = getTelegramWebApp();
-    if (!data || !twa) return;
-    twa.MainButton.setText('Add to cart');
-    twa.MainButton.show();
-    const onClick = () => {
-      dispatch(
-        addOne({
-          productId: data.id,
-          slug: data.slug,
-          name: data.name,
-          price: data.price,
-          imageUrl: data.imageUrl,
-          quantity: 1,
-        }),
-      );
-      twa.MainButton.hideProgress();
-    };
-    twa.MainButton.onClick(onClick);
-    return () => {
-      twa.MainButton.offClick(onClick);
-      twa.MainButton.hide();
-    };
-  }, [data, dispatch]);
-
-  if (isLoading) {
+  if (!product) {
     return (
-      <div style={{ padding: 48, textAlign: 'center' }}>
-        <Spin size="large" />
+      <div className="tma-page">
+        <h1 className="page-title">Not found</h1>
+        <p className="page-placeholder">
+          This demo item does not exist. Return to Explore.
+        </p>
+        <Button
+          mode="filled"
+          size="m"
+          stretched
+          onClick={() => navigate('/')}
+          style={{ marginTop: 16 }}
+        >
+          Back to Explore
+        </Button>
       </div>
     );
   }
 
-  if (isError || !data) {
-    return (
-      <Typography.Paragraph type="danger" style={{ padding: 24 }}>
-        Product not found.
-      </Typography.Paragraph>
-    );
-  }
-
   return (
-    <div style={{ padding: 16 }}>
-      {data.imageUrl && (
+    <div className="tma-page">
+      <div
+        style={{
+          borderRadius: 'var(--pb-radius-md)',
+          overflow: 'hidden',
+          marginBottom: 16,
+          border: '1px solid var(--pb-border)',
+        }}
+      >
         <img
-          src={data.imageUrl}
+          src={`https://picsum.photos/seed/${product.imageSeed}/800/800`}
           alt=""
-          style={{ width: '100%', maxHeight: 320, objectFit: 'cover', borderRadius: 8 }}
+          style={{ width: '100%', display: 'block', aspectRatio: '1' }}
         />
-      )}
-      <Typography.Title level={3}>{data.name}</Typography.Title>
-      <Typography.Paragraph>{data.description}</Typography.Paragraph>
-      <Descriptions column={1} size="small" bordered style={{ marginBottom: 16 }}>
-        <Descriptions.Item label="Price">
-          {data.currency} {data.price}
-        </Descriptions.Item>
-        {data.volumeMl != null && (
-          <Descriptions.Item label="Volume">{data.volumeMl} ml</Descriptions.Item>
-        )}
-      </Descriptions>
-      <Space>
-        <Button
-          type="primary"
-          size="large"
-          block
-          onClick={() =>
-            dispatch(
-              addOne({
-                productId: data.id,
-                slug: data.slug,
-                name: data.name,
-                price: data.price,
-                imageUrl: data.imageUrl,
-                quantity: 1,
-              }),
-            )
-          }
-        >
-          Add to cart
-        </Button>
-      </Space>
+      </div>
+      <h1 className="page-title" style={{ marginBottom: 8 }}>
+        {product.title}
+      </h1>
+      <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--pb-gold-600)' }}>
+        {formatPrice(product.priceCents)}
+      </p>
+      <p className="page-placeholder" style={{ marginTop: 12 }}>
+        Product description and stock will load from the API. Add to cart will
+        connect to Redux + RTK Query in a later step.
+      </p>
+      <Button mode="filled" size="l" stretched style={{ marginTop: 20 }}>
+        Add to cart
+      </Button>
     </div>
   );
 }

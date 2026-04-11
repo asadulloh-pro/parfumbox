@@ -1,27 +1,18 @@
-import { ConfigProvider, theme } from 'antd';
-import type { ReactNode } from 'react';
+import { AppRoot } from '@telegram-apps/telegram-ui';
+import { type ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
-import { store } from '@/app/store';
-import { TelegramAuthBootstrap } from '@/features/telegram-auth/ui/TelegramAuthBootstrap';
-import { getTelegramWebApp } from '@/shared/lib/telegram';
-
-const twa = typeof window !== 'undefined' ? getTelegramWebApp() : undefined;
-const dark = twa?.colorScheme === 'dark';
+import { TelegramBootstrap } from '../../features/telegram-bootstrap/ui/TelegramBootstrap';
+import { store } from '../store';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <Provider store={store}>
-      <ConfigProvider
-        theme={{
-          algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        }}
-      >
+      <TelegramBootstrap>
         <BrowserRouter>
-          <TelegramAuthBootstrap />
-          {children}
+          <AppRoot>{children}</AppRoot>
         </BrowserRouter>
-      </ConfigProvider>
+      </TelegramBootstrap>
     </Provider>
   );
 }

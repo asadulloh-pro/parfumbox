@@ -1,82 +1,89 @@
+import { AppShell, Burger, Group, ScrollArea, Text, Title } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
-  LogoutOutlined,
-  ShoppingOutlined,
-  TeamOutlined,
-  AppstoreOutlined,
-} from '@ant-design/icons';
-import { Layout, Menu, theme } from 'antd';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '@/app/hooks';
-import { setToken } from '@/entities/session/model/sessionSlice';
+  IconLayoutDashboard,
+  IconPackage,
+  IconShoppingCart,
+  IconUsers,
+} from '@tabler/icons-react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
-const { Header, Sider, Content } = Layout;
-
-const menuItems = [
-  { key: '/orders', icon: <ShoppingOutlined />, label: <Link to="/orders">Orders</Link> },
-  { key: '/clients', icon: <TeamOutlined />, label: <Link to="/clients">Clients</Link> },
-  { key: '/products', icon: <AppstoreOutlined />, label: <Link to="/products">Products</Link> },
+const nav = [
+  { to: '/dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
+  { to: '/orders', label: 'Orders', icon: IconShoppingCart },
+  { to: '/products', label: 'Products', icon: IconPackage },
+  { to: '/users', label: 'Users', icon: IconUsers },
 ];
 
 export function AdminLayout() {
-  const loc = useLocation();
-  const nav = useNavigate();
-  const dispatch = useAppDispatch();
-  const { token } = theme.useToken();
+  const [opened, { toggle }] = useDisclosure();
+  const isMobile = useMediaQuery('(max-width: 47.99em)');
+  const { pathname } = useLocation();
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider breakpoint="lg" collapsedWidth={0}>
-        <div
-          style={{
-            height: 48,
-            margin: 16,
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 16,
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          Parfumbox
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[menuItems.find((m) => loc.pathname.startsWith(m.key))?.key ?? '/orders']}
-          items={menuItems}
-        />
-      </Sider>
-      <Layout>
-        <Header
-          style={{
-            padding: '0 24px',
-            background: token.colorBgContainer,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <Menu
-            mode="horizontal"
-            selectable={false}
-            style={{ border: 'none', minWidth: 120 }}
-            items={[
-              {
-                key: 'out',
-                icon: <LogoutOutlined />,
-                label: 'Sign out',
-                onClick: () => {
-                  dispatch(setToken(null));
-                  nav('/login');
-                },
-              },
-            ]}
-          />
-        </Header>
-        <Content style={{ margin: 24 }}>
-          <Outlet />
-        </Content>
-      </Layout>
-    </Layout>
+    <AppShell
+      header={{ height: 56 }}
+      navbar={{
+        width: 260,
+        breakpoint: 'sm',
+        collapsed: { mobile: !opened },
+      }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" px="md" justify="space-between">
+          <Group>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Title order={4} c="parfum.8">
+              Parfumbox Admin
+            </Title>
+          </Group>
+          <Text size="sm" c="dimmed" visibleFrom="sm">
+            {pathname}
+          </Text>
+        </Group>
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md">
+        <ScrollArea type="never" style={{ height: 'calc(100% - 32px)' }}>
+          {nav.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => {
+                if (isMobile && opened) toggle();
+              }}
+              style={{ textDecoration: 'none' }}
+            >
+              {({ isActive }) => (
+                <Group
+                  gap="sm"
+                  px="sm"
+                  py={10}
+                  mb={4}
+                  style={{
+                    borderRadius: 8,
+                    backgroundColor: isActive
+                      ? 'var(--mantine-color-parfum-0)'
+                      : undefined,
+                    color: isActive
+                      ? 'var(--mantine-color-parfum-8)'
+                      : 'var(--mantine-color-dark-6)',
+                    fontWeight: isActive ? 600 : 500,
+                  }}
+                >
+                  <Icon size={18} stroke={1.75} />
+                  <Text size="sm">{label}</Text>
+                </Group>
+              )}
+            </NavLink>
+          ))}
+        </ScrollArea>
+      </AppShell.Navbar>
+
+      <AppShell.Main>
+        <Outlet />
+      </AppShell.Main>
+    </AppShell>
   );
 }

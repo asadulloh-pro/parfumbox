@@ -1,38 +1,23 @@
-import type { ReactNode } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { useAppSelector } from '@/app/hooks';
-import { AdminLayout } from '@/layouts/AdminLayout';
-import { LoginPage } from '@/pages/LoginPage';
-import { OrdersPage } from '@/pages/OrdersPage';
-import { ClientsPage } from '@/pages/ClientsPage';
-import { ProductsPage } from '@/pages/ProductsPage';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { AdminLayout } from '../layouts/AdminLayout';
+import { DashboardPage } from '../pages/DashboardPage';
+import { LoginPage } from '../pages/LoginPage';
+import { OrdersPage } from '../pages/OrdersPage';
+import { ProductsPage } from '../pages/ProductsPage';
+import { UsersPage } from '../pages/UsersPage';
 
-function RequireAuth({ children }: { children: ReactNode }) {
-  const token = useAppSelector((s) => s.session.token);
-  const loc = useLocation();
-  if (!token) {
-    return <Navigate to="/login" state={{ from: loc }} replace />;
-  }
-  return <>{children}</>;
-}
-
-export function App() {
+export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route
-        element={
-          <RequireAuth>
-            <AdminLayout />
-          </RequireAuth>
-        }
-      >
-        <Route index element={<Navigate to="/orders" replace />} />
+      <Route path="/" element={<AdminLayout />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
         <Route path="orders" element={<OrdersPage />} />
-        <Route path="clients" element={<ClientsPage />} />
         <Route path="products" element={<ProductsPage />} />
+        <Route path="users" element={<UsersPage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

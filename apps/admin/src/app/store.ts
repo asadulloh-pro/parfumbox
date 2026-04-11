@@ -1,13 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { sessionSlice } from '@/entities/session/model/sessionSlice';
-import { adminApi } from '@/api/adminApi';
 
 export const store = configureStore({
   reducer: {
-    session: sessionSlice.reducer,
-    [adminApi.reducerPath]: adminApi.reducer,
+    shell: (state: Record<string, never> | undefined) => state ?? {},
   },
-  middleware: (g) => g().concat(adminApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

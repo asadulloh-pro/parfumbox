@@ -1,51 +1,70 @@
-import { Badge, Button, Layout, Space, Typography } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
-import { Link, useLocation } from 'react-router-dom';
-import { useAppSelector } from '@/app/hooks';
+import { Badge, Button } from '@telegram-apps/telegram-ui';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const { Header } = Layout;
+const titles: Record<string, string> = {
+  '/': 'Explore',
+  '/cart': 'Cart',
+  '/checkout': 'Checkout',
+  '/orders': 'Orders',
+  '/profile': 'Profile',
+};
+
+function titleForPath(pathname: string): string {
+  if (pathname.startsWith('/product/')) return 'Product';
+  return titles[pathname] ?? 'Parfumbox';
+}
 
 export function AppHeader() {
-  const count = useAppSelector((s) =>
-    s.cart.items.reduce((n, i) => n + i.quantity, 0),
-  );
-  const location = useLocation();
-  const hideBack = location.pathname === '/';
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const title = titleForPath(pathname);
 
   return (
-    <Header
+    <header
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingInline: 16,
         gap: 12,
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--pb-border)',
+        background: 'var(--pb-surface)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
       }}
     >
-      <Space>
-        {!hideBack && (
-          <Button type="text" onClick={() => window.history.back()}>
-            Back
-          </Button>
-        )}
-        <Link to="/">
-          <Typography.Title level={4} style={{ margin: 0, color: 'inherit' }}>
-            Parfumbox
-          </Typography.Title>
-        </Link>
-      </Space>
-      <Space>
-        <Link to="/orders">
-          <Button type="text">Orders</Button>
-        </Link>
-        <Link to="/cart">
-          <Badge count={count} offset={[-4, 4]}>
-            <Button type="primary" icon={<ShoppingCartOutlined />}>
-              Cart
-            </Button>
-          </Badge>
-        </Link>
-      </Space>
-    </Header>
+      <Link
+        to="/"
+        style={{
+          fontWeight: 700,
+          fontSize: 17,
+          letterSpacing: '-0.02em',
+          color: 'var(--pb-text)',
+        }}
+      >
+        {title}
+      </Link>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Button mode="plain" size="s" onClick={() => navigate('/profile')}>
+          Profile
+        </Button>
+        <Button mode="plain" size="s" onClick={() => navigate('/orders')}>
+          Orders
+        </Button>
+        <Button
+          mode="bezeled"
+          size="s"
+          onClick={() => navigate('/cart')}
+          after={
+            <Badge type="number" mode="primary">
+              0
+            </Badge>
+          }
+        >
+          Cart
+        </Button>
+      </div>
+    </header>
   );
 }

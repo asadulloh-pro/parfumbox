@@ -1,20 +1,15 @@
 {
   "name": "parfumbox",
   "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
-    "dev:api": "npm run start:dev -w @parfumbox/api",
-    "dev:web": "npm run dev -w @parfumbox/web",
-    "dev:admin": "npm run dev -w @parfumbox/admin",
-    "build": "npm run build -w @parfumbox/api && npm run build -w @parfumbox/web && npm run build -w @parfumbox/admin",
-    "db:generate": "npm run prisma:generate -w @parfumbox/api",
-    "db:migrate": "npm run prisma:migrate -w @parfumbox/api",
-    "db:seed": "npm run prisma:seed -w @parfumbox/api",
-    "db:studio": "npm run prisma:studio -w @parfumbox/api"
+    "dev:web": "pnpm --filter web dev",
+    "dev:web:tunnel": "concurrently -k -n web,ngrok -c cyan,magenta \"pnpm --filter web dev\" \"ngrok http 5173\"",
+    "dev:admin": "pnpm --filter admin dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint"
   },
-  "engines": {
-    "node": ">=20"
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
