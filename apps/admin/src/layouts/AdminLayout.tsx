@@ -1,4 +1,12 @@
-import { AppShell, Burger, Group, ScrollArea, Text, Title } from '@mantine/core';
+import {
+  AppShell,
+  Burger,
+  Button,
+  Group,
+  ScrollArea,
+  Text,
+  Title,
+} from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
   IconLayoutDashboard,
@@ -6,7 +14,9 @@ import {
   IconShoppingCart,
   IconUsers,
 } from '@tabler/icons-react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../app/hooks';
+import { logout } from '../features/auth/authSlice';
 
 const nav = [
   { to: '/dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
@@ -16,6 +26,8 @@ const nav = [
 ];
 
 export function AdminLayout() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [opened, { toggle }] = useDisclosure();
   const isMobile = useMediaQuery('(max-width: 47.99em)');
   const { pathname } = useLocation();
@@ -38,9 +50,22 @@ export function AdminLayout() {
               Parfumbox Admin
             </Title>
           </Group>
-          <Text size="sm" c="dimmed" visibleFrom="sm">
-            {pathname}
-          </Text>
+          <Group gap="sm">
+            <Text size="sm" c="dimmed" visibleFrom="sm">
+              {pathname}
+            </Text>
+            <Button
+              size="xs"
+              variant="light"
+              color="parfum"
+              onClick={() => {
+                dispatch(logout());
+                navigate('/login', { replace: true });
+              }}
+            >
+              Sign out
+            </Button>
+          </Group>
         </Group>
       </AppShell.Header>
 

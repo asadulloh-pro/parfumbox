@@ -1,5 +1,4 @@
 import {
-  Anchor,
   Button,
   Paper,
   PasswordInput,
@@ -8,10 +7,24 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useLoginMutation } from '../app/parfumApi';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { setCredentials } from '../features/auth/authSlice';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const existing = useAppSelector((s) => s.auth.accessToken);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [login, { isLoading }] = useLoginMutation();
+
+  if (existing) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <Stack align="center" justify="center" mih="100dvh" p="md" bg="gray.0">
@@ -20,23 +33,49 @@ export function LoginPage() {
           Sign in
         </Title>
         <Text size="sm" c="dimmed" mb="lg">
-          Admin credentials will be validated by the API in a later step.
+          Use the admin email and password configured in the API database.
         </Text>
-        <Stack gap="md">
-          <TextInput label="Email" placeholder="admin@example.com" />
-          <PasswordInput label="Password" placeholder="••••••••" />
-          <Button
-            fullWidth
-            onClick={() => navigate('/dashboard')}
-            color="parfum"
-          >
-            Continue
-          </Button>
-          <Text size="xs" c="dimmed" ta="center">
-            Scaffold only — <Anchor size="xs">forgot password</Anchor> is not
-            wired yet.
-          </Text>
-        </Stack>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            try {
+              const res = await login({ email: email.trim(), password }).unwrap();
+              dispatch(setCredentials({ accessToken: res.accessToken }));
+              navigate('/dashboard', { replace: true });
+            } catch {
+              setError('Invalid email or password.');
+            }
+          }}
+        >
+          <Stack gap="md">
+            <TextInput
+              label="Email"
+              placeholder="admin@example.com"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(ev) => setEmail(ev.currentTarget.value)}
+              required
+            />
+            <PasswordInput
+              label="Password"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              value={password}
+              onChange={(ev) => setPassword(ev.currentTarget.value)}
+              required
+            />
+            {error ? (
+              <Text size="sm" c="red">
+                {error}
+              </Text>
+            ) : null}
+            <Button fullWidth type="submit" loading={isLoading} color="parfum">
+              Continue
+            </Button>
+          </Stack>
+        </form>
       </Paper>
     </Stack>
   );

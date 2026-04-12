@@ -1,21 +1,39 @@
-import { Button } from '@telegram-apps/telegram-ui';
+import { Button, Spinner } from '@telegram-apps/telegram-ui';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  demoProducts,
-  formatPrice,
-} from '../../../shared/mocks/demo-products';
+import { useGetProductQuery } from '../../../app/parfumApi';
+import { useAppDispatch } from '../../../app/hooks';
+import { addOrMergeLine } from '../../../features/cart/cartSlice';
+import { formatPrice } from '../../../shared/lib/money';
+
+function productImageUrl(id: string, images: string[]): string {
+  if (images.length > 0) {
+    return images[0];
+  }
+  return `https://picsum.photos/seed/pb-${id}/800/800`;
+}
 
 export function ProductPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
-  const product = demoProducts.find((p) => p.id === id);
+  const { data: product, isLoading, isError } = useGetProductQuery(id ?? '', {
+    skip: !id,
+  });
 
-  if (!product) {
+  if (isLoading) {
+    return (
+      <div className="tma-page tma-page--centered">
+        <Spinner size="l" />
+      </div>
+    );
+  }
+
+  if (isError || !product || !id) {
     return (
       <div className="tma-page">
         <h1 className="page-title">Not found</h1>
         <p className="page-placeholder">
-          This demo item does not exist. Return to Explore.
+          This product is not available. Return to Explore.
         </p>
         <Button
           mode="filled"
@@ -30,6 +48,11 @@ export function ProductPage() {
     );
   }
 
+  const stockLabel =
+    product.stock === null || product.stock === undefined
+      ? null
+      : `In stock: ${product.stock}`;
+
   return (
     <div className="tma-page">
       <div
@@ -41,7 +64,7 @@ export function ProductPage() {
         }}
       >
         <img
-          src={`https://picsum.photos/seed/${product.imageSeed}/800/800`}
+          src={productImageUrl(product.id, product.images)}
           alt=""
           style={{ width: '100%', display: 'block', aspectRatio: '1' }}
         />
@@ -52,11 +75,32 @@ export function ProductPage() {
       <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--pb-gold-600)' }}>
         {formatPrice(product.priceCents)}
       </p>
-      <p className="page-placeholder" style={{ marginTop: 12 }}>
-        Product description and stock will load from the API. Add to cart will
-        connect to Redux + RTK Query in a later step.
-      </p>
-      <Button mode="filled" size="l" stretched style={{ marginTop: 20 }}>
+      {stockLabel ? (
+        <p className="page-placeholder" style={{ marginTop: 8 }}>
+          {stockLabel}
+        </p>
+      ) : null}
+      {product.description ? (
+        <p style={{ marginTop: 12, lineHeight: 1.5 }}>{product.description}</p>
+      ) : null}
+      <Button
+        mode="filled"
+        size="l"
+        stretched
+        style={{ marginTop: 20 }}
+        onClick={() => {
+          dispatch(
+            addOrMergeLine({
+              productId: product.id,
+              title: product.title,
+              unitPriceCents: product.priceCents,
+              imageUrl: product.images[0] ?? null,
+              quantity: 1,
+            }),
+          );
+          navigate('/cart');
+        }}
+      >
         Add to cart
       </Button>
     </div>

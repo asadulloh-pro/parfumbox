@@ -1,6 +1,8 @@
 import { MantineProvider } from '@mantine/core';
+import { DatesProvider } from '@mantine/dates';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
+import '@mantine/dates/styles.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
@@ -14,9 +16,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <MantineProvider theme={adminTheme}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <DatesProvider settings={{ firstDayOfWeek: 1 }}>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </DatesProvider>
       </MantineProvider>
     </Provider>
   </StrictMode>,

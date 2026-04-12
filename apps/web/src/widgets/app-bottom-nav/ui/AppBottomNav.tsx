@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useAppSelector } from '../../../app/hooks';
 
 const items = [
   {
@@ -28,6 +29,10 @@ const items = [
 ] as const;
 
 export function AppBottomNav() {
+  const cartCount = useAppSelector((s) =>
+    s.cart.items.reduce((n, l) => n + l.quantity, 0),
+  );
+
   return (
     <nav className="tma-bottom-nav" aria-label="Main">
       {items.map(({ to, label, end, icon: Icon }) => (
@@ -41,6 +46,9 @@ export function AppBottomNav() {
         >
           <Icon className="tma-bottom-nav__icon" aria-hidden />
           <span className="tma-bottom-nav__label">{label}</span>
+          {to === '/cart' && cartCount > 0 ? (
+            <span className="tma-bottom-nav__badge">{cartCount > 99 ? '99+' : cartCount}</span>
+          ) : null}
         </NavLink>
       ))}
     </nav>

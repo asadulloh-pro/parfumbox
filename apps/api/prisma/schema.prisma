@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Telegram mini-app user; keyed by Telegram account id.
+model User {
+  id                 String    @id @default(cuid())
+  telegramId         String    @unique
+  telegramUsername   String?
+  firstName          String?
+  lastName           String?
+  phone              String?
+  birthDate          DateTime? @db.Date
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  orders Order[]
+}
+
+/// Admin panel account (separate from Telegram users).
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("")
+  priceCents  Int
+  images      String[] @default([])
+  stock       Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orderItems OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id                 String      @id @default(cuid())
+  userId             String
+  status             OrderStatus @default(PENDING)
+  subtotalCents      Int
+  totalCents         Int
+  deliveryPhone      String?
+  deliveryFirstName  String?
+  deliveryLastName   String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+}
+
+model OrderItem {
+  id             String @id @default(cuid())
+  orderId        String
+  productId      String?
+  quantity       Int
+  unitPriceCents Int
+  titleSnapshot  String
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
