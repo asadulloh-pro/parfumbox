@@ -10,5 +10,14 @@ export default defineConfig({
     strictPort: true,
     // ngrok (and similar tunnels) use a random hostname each session unless reserved
     allowedHosts: true,
+    // Same-origin API in dev: Telegram/ngrok hits this host; we forward to the local Nest API.
+    // Prefix avoids clashing with SPA routes like /orders.
+    proxy: {
+      '/_parfumbox-api': {
+        target: 'http://127.0.0.1:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/_parfumbox-api/, '') || '/',
+      },
+    },
   },
 })

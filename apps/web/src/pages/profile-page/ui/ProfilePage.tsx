@@ -7,6 +7,7 @@ import {
 } from '../../../app/parfumApi';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { setUser } from '../../../features/auth/authSlice';
+import { useTelegramSession } from '../../../features/session/telegramSessionContext';
 
 function toDateInputValue(iso: string | null | undefined): string {
   if (!iso) return '';
@@ -107,18 +108,36 @@ function ProfileEditor({ me }: { me: UserProfile }) {
 
 export function ProfilePage() {
   const token = useAppSelector((s) => s.auth.accessToken);
+  const { isTelegramAuthPending, telegramSignInError } = useTelegramSession();
 
   const { data: me, isLoading, isError } = useGetMeQuery(undefined, {
     skip: !token,
   });
 
   if (!token) {
+    if (isTelegramAuthPending) {
+      return (
+        <div className="tma-page tma-page--centered">
+          <Spinner size="l" />
+        </div>
+      );
+    }
     return (
       <div className="tma-page">
         <h1 className="page-title">Profile</h1>
+        {telegramSignInError ? (
+          <p
+            className="page-placeholder"
+            style={{ color: 'var(--pb-danger, #b42318)', marginBottom: 12 }}
+          >
+            {telegramSignInError}
+          </p>
+        ) : null}
         <p className="page-placeholder">
-          Open the app in Telegram to load your account, or use{' '}
-          <code style={{ fontSize: 13 }}>VITE_DEV_JWT</code> for local testing.
+          Open the app from your Telegram bot to load your account. In a browser,
+          set <code style={{ fontSize: 13 }}>VITE_DEV=true</code> and{' '}
+          <code style={{ fontSize: 13 }}>VITE_DEV_JWT</code> in{' '}
+          <code style={{ fontSize: 13 }}>apps/web/.env</code>, then restart Vite.
         </p>
       </div>
     );

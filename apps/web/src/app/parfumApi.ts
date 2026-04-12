@@ -7,8 +7,18 @@ import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { logout } from '../features/auth/authSlice';
 import type { TelegramAuthUser } from '../features/auth/authSlice';
 
-const baseUrl =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
+/**
+ * API base URL. In dev, defaults to a same-origin path proxied by Vite to localhost:3000
+ * so Telegram/ngrok tunnels work without a second tunnel. Override with VITE_API_BASE_URL.
+ */
+export function getParfumApiBaseUrl(): string {
+  const fromEnv = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
+  if (fromEnv) return fromEnv;
+  if (import.meta.env.DEV) return '/_parfumbox-api';
+  return 'http://localhost:3000';
+}
+
+const baseUrl = getParfumApiBaseUrl();
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl,

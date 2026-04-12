@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AdminStatsModule } from "./admin-stats/admin-stats.module";
@@ -13,7 +14,11 @@ import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      // Always load apps/api/.env (Nest default only reads cwd/.env; pnpm may run with repo root cwd).
+      envFilePath: join(__dirname, "..", ".env"),
+    }),
     PrismaModule,
     AuthModule,
     AdminAuthModule,

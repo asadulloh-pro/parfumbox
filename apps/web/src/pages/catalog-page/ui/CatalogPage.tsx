@@ -1,6 +1,9 @@
 import { Spinner } from '@telegram-apps/telegram-ui';
 import { Link } from 'react-router-dom';
-import { useGetProductsQuery } from '../../../app/parfumApi';
+import {
+  getParfumApiBaseUrl,
+  useGetProductsQuery,
+} from '../../../app/parfumApi';
 import { formatPrice } from '../../../shared/lib/money';
 
 function productImageUrl(id: string, images: string[]): string {
@@ -24,10 +27,11 @@ export function CatalogPage() {
   if (isError || !products) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Catalog</h1>
+        <h1 className="page-title">Catalog 2</h1>
         <p className="page-placeholder">
-          Could not load products. Check that the API is running and
-          VITE_API_BASE_URL is correct.
+          Could not load products (<code>{getParfumApiBaseUrl()}</code>). Ensure the
+          API is running on port 3000 and restart the Vite dev server. For a production
+          build, set <code>VITE_API_BASE_URL</code> to your deployed API.
         </p>
       </div>
     );

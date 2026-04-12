@@ -9,6 +9,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import type { CartLine } from '../../../features/cart/cartSlice';
 import { clearCart } from '../../../features/cart/cartSlice';
+import { useTelegramSession } from '../../../features/session/telegramSessionContext';
 
 function toDateInputValue(iso: string | null | undefined): string {
   if (!iso) return '';
@@ -147,6 +148,7 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const token = useAppSelector((s) => s.auth.accessToken);
   const cartItems = useAppSelector((s) => s.cart.items);
+  const { isTelegramAuthPending, telegramSignInError } = useTelegramSession();
 
   const { data: me, isLoading: meLoading, isError: meError } = useGetMeQuery(
     undefined,
@@ -156,14 +158,30 @@ export function CheckoutPage() {
   );
 
   if (!token) {
+    if (isTelegramAuthPending) {
+      return (
+        <div className="tma-page tma-page--centered">
+          <Spinner size="l" />
+        </div>
+      );
+    }
     return (
       <div className="tma-page">
         <h1 className="page-title">Checkout</h1>
+        {telegramSignInError ? (
+          <p
+            className="page-placeholder"
+            style={{ color: 'var(--pb-danger, #b42318)', marginBottom: 12 }}
+          >
+            {telegramSignInError}
+          </p>
+        ) : null}
         <p className="page-placeholder">
-          Open this app inside Telegram to sign in, or set{' '}
-          <code style={{ fontSize: 13 }}>VITE_DEV_JWT</code> in{' '}
-          <code style={{ fontSize: 13 }}>.env.local</code> for local API
-          testing.
+          Open this app from your Telegram bot to sign in. To test checkout in a
+          normal browser, set <code style={{ fontSize: 13 }}>VITE_DEV=true</code>{' '}
+          and a valid <code style={{ fontSize: 13 }}>VITE_DEV_JWT</code> in{' '}
+          <code style={{ fontSize: 13 }}>apps/web/.env</code>, then restart the
+          Vite dev server.
         </p>
       </div>
     );

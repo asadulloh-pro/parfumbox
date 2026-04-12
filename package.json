@@ -8,12 +8,14 @@
     "docker:logs": "docker compose logs -f",
     "dev:web": "pnpm --filter web dev",
     "dev:web:tunnel": "concurrently -k -n web,ngrok -c cyan,magenta \"pnpm --filter web dev\" \"ngrok http 5173\"",
+    "ngrok": "ngrok http http://localhost:5173",
     "dev:admin": "pnpm --filter admin dev",
     "dev:api": "pnpm --filter api start:dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "ngrok": "5.0.0-beta.2"
   }
 }
