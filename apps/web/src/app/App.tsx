@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { AppBottomNav } from '../widgets/app-bottom-nav/ui/AppBottomNav';
 import { AppHeader } from '../widgets/app-header/ui/AppHeader';
 import { CartPage } from '../pages/cart-page/ui/CartPage';
 import { CatalogPage } from '../pages/catalog-page/ui/CatalogPage';
@@ -11,15 +12,18 @@ export default function App() {
   return (
     <div className="tma-shell">
       <AppHeader />
-      <Routes>
-        <Route path="/" element={<CatalogPage />} />
-        <Route path="/product/:id" element={<ProductPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <main className="tma-main">
+        <Routes>
+          <Route path="/" element={<CatalogPage />} />
+          <Route path="/product/:id" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      <AppBottomNav />
     </div>
   );
 }

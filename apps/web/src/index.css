@@ -1,5 +1,11 @@
 @import './shared/styles/tokens.css';
 
+/* Space for fixed bottom nav (bar + home indicator safe area) */
+:root {
+  /* Total height of bottom bar excluding device safe-area inset */
+  --tma-bottom-nav-inner-height: 68px;
+}
+
 *,
 *::before,
 *::after {
@@ -30,12 +36,95 @@ a {
 }
 
 .tma-shell {
+  display: flex;
+  flex-direction: column;
   max-width: 430px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
-    env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) 0
+    env(safe-area-inset-left, 0);
   background: var(--pb-surface);
+}
+
+.tma-header {
+  flex-shrink: 0;
+  min-height: 52px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--pb-border);
+  background: var(--pb-surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tma-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Keep scroll content above fixed bottom nav */
+  padding-bottom: calc(
+    var(--tma-bottom-nav-inner-height) + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.tma-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 4px;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0));
+  padding-left: max(8px, env(safe-area-inset-left, 0px));
+  padding-right: max(8px, env(safe-area-inset-right, 0px));
+  border-top: 1px solid var(--pb-border);
+  background: var(--pb-surface);
+  z-index: 100;
+  box-shadow: 0 -4px 24px rgba(15, 36, 25, 0.06);
+}
+
+.tma-bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 4px;
+  border-radius: var(--pb-radius-sm);
+  color: var(--pb-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.tma-bottom-nav__item--active {
+  color: var(--pb-accent);
+  background: color-mix(in srgb, var(--pb-accent) 12%, transparent);
+}
+
+.tma-bottom-nav__icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.tma-bottom-nav__item--active .tma-bottom-nav__icon {
+  opacity: 1;
+}
+
+.tma-bottom-nav__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .tma-page {
