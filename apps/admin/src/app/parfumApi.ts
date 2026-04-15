@@ -82,7 +82,14 @@ export type AdminOrder = {
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
-  user: { id: string; telegramId: string };
+  user: {
+    id: string;
+    telegramId: string;
+    firstName: string | null;
+    lastName: string | null;
+    phone: string | null;
+    birthDate: string | null;
+  };
 };
 
 export type TelegramUser = {

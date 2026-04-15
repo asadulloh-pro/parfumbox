@@ -114,12 +114,33 @@ export class OrdersService {
     return order;
   }
 
-  async listAll(): Promise<(Order & { items: OrderItem[]; user: { id: string; telegramId: string } })[]> {
+  async listAll(): Promise<
+    (Order & {
+      items: OrderItem[];
+      user: {
+        id: string;
+        telegramId: string;
+        firstName: string | null;
+        lastName: string | null;
+        phone: string | null;
+        birthDate: Date | null;
+      };
+    })[]
+  > {
     return this.prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       include: {
         items: true,
-        user: { select: { id: true, telegramId: true } },
+        user: {
+          select: {
+            id: true,
+            telegramId: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            birthDate: true,
+          },
+        },
       },
     });
   }

@@ -14,9 +14,19 @@ export class AdminOrdersController {
 
   @Get()
   @ApiOperation({ summary: "List all orders (admin)" })
-  @ApiOkResponse({ description: "Orders with items and user ids" })
+  @ApiOkResponse({ description: "Orders with items and user profile data" })
   async list(): Promise<
-    (Order & { items: OrderItem[]; user: { id: string; telegramId: string } })[]
+    (Order & {
+      items: OrderItem[];
+      user: {
+        id: string;
+        telegramId: string;
+        firstName: string | null;
+        lastName: string | null;
+        phone: string | null;
+        birthDate: Date | null;
+      };
+    })[]
   > {
     return this.orders.listAll();
   }
