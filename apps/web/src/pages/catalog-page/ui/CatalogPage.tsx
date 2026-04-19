@@ -1,9 +1,11 @@
 import { Spinner } from '@telegram-apps/telegram-ui';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   getParfumApiBaseUrl,
   useGetProductsQuery,
 } from '../../../app/parfumApi';
+import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
 import { formatPrice } from '../../../shared/lib/money';
 
 function productImageUrl(id: string, images: string[]): string {
@@ -14,6 +16,7 @@ function productImageUrl(id: string, images: string[]): string {
 }
 
 export function CatalogPage() {
+  const { t } = useTranslation();
   const { data: products, isLoading, isError } = useGetProductsQuery();
 
   if (isLoading) {
@@ -27,11 +30,12 @@ export function CatalogPage() {
   if (isError || !products) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Catalog 2</h1>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('catalog.loadErrorTitle')}</h1>
         <p className="page-placeholder">
-          Could not load products (<code>{getParfumApiBaseUrl()}</code>). Ensure the
-          API is running on port 3000 and restart the Vite dev server. For a production
-          build, set <code>VITE_API_BASE_URL</code> to your deployed API.
+          {t('catalog.loadError', { url: getParfumApiBaseUrl() })}
         </p>
       </div>
     );
@@ -39,6 +43,9 @@ export function CatalogPage() {
 
   return (
     <div className="tma-page">
+      <div style={{ marginBottom: 12 }}>
+        <LanguageSwitcher />
+      </div>
       <div className="explore-grid">
         {products.map((p) => (
           <Link key={p.id} to={`/product/${p.id}`} className="explore-card">

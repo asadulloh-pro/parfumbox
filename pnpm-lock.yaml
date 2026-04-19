@@ -41,12 +41,18 @@ importers:
       dayjs:
         specifier: ^1.11.20
         version: 1.11.20
+      i18next:
+        specifier: ^26.0.6
+        version: 26.0.6(typescript@6.0.2)
       react:
         specifier: ^18.3.1
         version: 18.3.1
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      react-i18next:
+        specifier: ^17.0.4
+        version: 17.0.4(i18next@26.0.6(typescript@6.0.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@6.0.2)
       react-redux:
         specifier: ^9.2.0
         version: 9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1)
@@ -199,12 +205,18 @@ importers:
       '@telegram-apps/telegram-ui':
         specifier: ^2.1.12
         version: 2.1.13(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      i18next:
+        specifier: ^26.0.6
+        version: 26.0.6(typescript@6.0.2)
       react:
         specifier: ^18.3.1
         version: 18.3.1
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      react-i18next:
+        specifier: ^17.0.4
+        version: 17.0.4(i18next@26.0.6(typescript@6.0.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@6.0.2)
       react-redux:
         specifier: ^9.2.0
         version: 9.2.0(@types/react@18.3.28)(react@18.3.1)(redux@5.0.1)
@@ -2844,6 +2856,9 @@ packages:
   hpagent@0.1.2:
     resolution: {integrity: sha512-ePqFXHtSQWAFXYmj+JtOTHr84iNrII4/QRlAAPPE+zqnKy4xJo7Ie1Y4kC7AdB+LxLxSTTzBMASsEcy0q8YyvQ==}
 
+  html-parse-stringify@3.0.1:
+    resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
+
   http-cache-semantics@4.2.0:
     resolution: {integrity: sha512-dTxcvPXqPvXBQpq5dUr6mEMJX4oIEFv6bwom3FDwKRDsuIjjJGANqhBuoAn9c1RQJIdAKav33ED65E2ys+87QQ==}
 
@@ -2858,6 +2873,14 @@ packages:
   https-proxy-agent@5.0.1:
     resolution: {integrity: sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==}
     engines: {node: '>= 6'}
+
+  i18next@26.0.6:
+    resolution: {integrity: sha512-A4U6eCXodIbrhf8EarRurB9/4ebyaurH4+fu4gig9bqxmpSt+fCAFm/GpRQDcN1Xzu/LdFCx4nYHsnM1edIIbg==}
+    peerDependencies:
+      typescript: ^5 || ^6
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -3579,6 +3602,22 @@ packages:
     peerDependencies:
       react: ^18.3.1
 
+  react-i18next@17.0.4:
+    resolution: {integrity: sha512-hQipmK4EF0y6RO6tt6WuqnmWpWYEXmQUUzecmMBuNsIgYd3smXcG4GtYPWhvgxn0pqMOItKlEO8H24HCs5hc3g==}
+    peerDependencies:
+      i18next: '>= 26.0.1'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      typescript: ^5 || ^6
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      typescript:
+        optional: true
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -4237,6 +4276,10 @@ packages:
         optional: true
       yaml:
         optional: true
+
+  void-elements@3.1.0:
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
+    engines: {node: '>=0.10.0'}
 
   watchpack@2.5.1:
     resolution: {integrity: sha512-Zn5uXdcFNIA1+1Ei5McRd+iRzfhENPCe7LeABkJtNulSxjma+l7ltNx55BWZkRlwRnpOgHqxnjyaDgJnNXnqzg==}
@@ -7490,6 +7533,10 @@ snapshots:
   hpagent@0.1.2:
     optional: true
 
+  html-parse-stringify@3.0.1:
+    dependencies:
+      void-elements: 3.1.0
+
   http-cache-semantics@4.2.0: {}
 
   http-errors@2.0.1:
@@ -7511,6 +7558,12 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  i18next@26.0.6(typescript@6.0.2):
+    dependencies:
+      '@babel/runtime': 7.29.2
+    optionalDependencies:
+      typescript: 6.0.2
 
   iconv-lite@0.4.24:
     dependencies:
@@ -8175,6 +8228,17 @@ snapshots:
       react: 18.3.1
       scheduler: 0.23.2
 
+  react-i18next@17.0.4(i18next@26.0.6(typescript@6.0.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@6.0.2):
+    dependencies:
+      '@babel/runtime': 7.29.2
+      html-parse-stringify: 3.0.1
+      i18next: 26.0.6(typescript@6.0.2)
+      react: 18.3.1
+      use-sync-external-store: 1.6.0(react@18.3.1)
+    optionalDependencies:
+      react-dom: 18.3.1(react@18.3.1)
+      typescript: 6.0.2
+
   react-is@16.13.1: {}
 
   react-is@18.3.1: {}
@@ -8777,6 +8841,8 @@ snapshots:
       terser: 5.46.1
       tsx: 4.21.0
       yaml: 2.8.3
+
+  void-elements@3.1.0: {}
 
   watchpack@2.5.1:
     dependencies:

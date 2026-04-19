@@ -1,0 +1,87 @@
+{
+  "language": {
+    "uz": "O‘zbekcha",
+    "ru": "Ruscha",
+    "label": "Til"
+  },
+  "nav": {
+    "main": "Asosiy navigatsiya",
+    "home": "Bosh sahifa",
+    "cart": "Savat",
+    "profile": "Profil",
+    "orders": "Buyurtmalar"
+  },
+  "catalog": {
+    "loadErrorTitle": "Mahsulotlarni yuklab bo‘lmadi",
+    "loadError": "Mahsulotlarni yuklab bo‘lmadi ({{url}}). API 3000-portda ishlayotganini va Vite dev serverni qayta ishga tushirganingizni tekshiring. Production uchun VITE_API_BASE_URL ni API manziliga qo‘ying."
+  },
+  "cart": {
+    "title": "Savat",
+    "emptyHeader": "Savat bo‘sh",
+    "emptyDescription": "Mahsulot sahifasidan qo‘shilgan narsalar shu yerda chiqadi.",
+    "subtotal": "Oraliq summa",
+    "checkout": "Buyurtma berish",
+    "remove": "Olib tashlash",
+    "ariaDecrease": "Miqdorni kamaytirish",
+    "ariaIncrease": "Miqdorni oshirish"
+  },
+  "checkout": {
+    "title": "Buyurtma",
+    "hint": "Buyurtma berganda yetkazib berish maʼlumotlari profilingizga saqlanadi.",
+    "phone": "Telefon",
+    "phonePlaceholder": "+998 …",
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "birthday": "Tug‘ilgan kun",
+    "placeOrder": "Buyurtma berish",
+    "networkError": "Tarmoq xatosi — API ishlayaptimi?",
+    "genericError": "Buyurtma berib bo‘lmadi. Qayta urining.",
+    "needTelegram": "Telegramdan kiring va buyurtmalarni ko‘ring.",
+    "devHint": "Brauzerda sinash uchun VITE_DEV=true va haqiqiy VITE_DEV_JWT ni apps/web/.env ga qo‘ying, keyin Vite ni qayta ishga tushiring.",
+    "cartEmpty": "Savatingiz bo‘sh.",
+    "browseCatalog": "Katalogga o‘tish",
+    "profileLoadError": "Profilingizni yuklab bo‘lmadi."
+  },
+  "product": {
+    "notFoundTitle": "Topilmadi",
+    "notFoundBody": "Bu mahsulot mavjud emas. Katalogga qayting.",
+    "backExplore": "Katalogga qaytish",
+    "inStock": "Omborda: {{count}}",
+    "addToCart": "Savatga qo‘shish"
+  },
+  "orders": {
+    "title": "Buyurtmalar",
+    "needTelegram": "Buyurtmalarni ko‘rish uchun Telegram orqali kiring.",
+    "loadError": "Buyurtmalarni yuklab bo‘lmadi.",
+    "empty": "Hali buyurtma yo‘q."
+  },
+  "orderStatus": {
+    "PENDING": "Kutilmoqda",
+    "CONFIRMED": "Tasdiqlangan",
+    "SHIPPED": "Yo‘lda",
+    "DELIVERED": "Yetkazilgan",
+    "CANCELLED": "Bekor qilingan"
+  },
+  "orderDetail": {
+    "title": "Buyurtma",
+    "needSignIn": "Bu buyurtmani ko‘rish uchun kiring.",
+    "notFound": "Buyurtma topilmadi.",
+    "backToOrders": "Buyurtmalarga qaytish",
+    "delivery": "Yetkazib berish",
+    "items": "Mahsulotlar",
+    "allOrders": "Barcha buyurtmalar"
+  },
+  "profile": {
+    "title": "Profil",
+    "telegramLine": "Telegram",
+    "signInHint": "Hisobingizni yuklash uchun ilovani Telegram botidan oching. Brauzerda VITE_DEV=true va VITE_DEV_JWT ni apps/web/.env ga qo‘ying, keyin Vite ni qayta ishga tushiring.",
+    "loadError": "Profil yuklanmadi.",
+    "phone": "Telefon",
+    "firstName": "Ism",
+    "lastName": "Familiya",
+    "birthday": "Tug‘ilgan kun",
+    "save": "Saqlash",
+    "signedInAs": "Siz {{name}} sifatida kirdingiz",
+    "userFallback": "Foydalanuvchi"
+  }
+}

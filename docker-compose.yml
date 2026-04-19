@@ -42,7 +42,7 @@ services:
       ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:-change-me-admin-jwt-docker}
       ADMIN_JWT_EXPIRES_IN: 1d
       TELEGRAM_INIT_DATA_MAX_AGE_SEC: '86400'
-      CORS_ORIGINS: http://localhost:8080,http://localhost:5173,http://localhost:8081,http://127.0.0.1:8080,http://127.0.0.1:5173,http://127.0.0.1:8081
+      CORS_ORIGINS: http://localhost:8080,http://localhost:5173,http://localhost:5174,http://localhost:8081,http://127.0.0.1:8080,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:8081
     depends_on:
       db:
         condition: service_healthy

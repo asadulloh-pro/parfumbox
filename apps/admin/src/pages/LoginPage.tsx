@@ -8,12 +8,15 @@ import {
   Title,
 } from '@mantine/core';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useLoginMutation } from '../app/parfumApi';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { setCredentials } from '../features/auth/authSlice';
+import { LanguageSwitcher } from '../features/i18n/LanguageSwitcher';
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const existing = useAppSelector((s) => s.auth.accessToken);
@@ -29,11 +32,14 @@ export function LoginPage() {
   return (
     <Stack align="center" justify="center" mih="100dvh" p="md" bg="gray.0">
       <Paper shadow="md" p="xl" radius="md" maw={420} w="100%">
+        <Stack gap="xs" mb="lg" align="stretch">
+          <LanguageSwitcher />
+        </Stack>
         <Title order={2} mb="xs" c="parfum.8">
-          Sign in
+          {t('login.title')}
         </Title>
         <Text size="sm" c="dimmed" mb="lg">
-          Use the admin email and password configured in the API database.
+          {t('login.subtitle')}
         </Text>
         <form
           onSubmit={async (e) => {
@@ -44,14 +50,14 @@ export function LoginPage() {
               dispatch(setCredentials({ accessToken: res.accessToken }));
               navigate('/dashboard', { replace: true });
             } catch {
-              setError('Invalid email or password.');
+              setError(t('login.invalidCredentials'));
             }
           }}
         >
           <Stack gap="md">
             <TextInput
-              label="Email"
-              placeholder="admin@example.com"
+              label={t('login.email')}
+              placeholder={t('login.emailPlaceholder')}
               type="email"
               autoComplete="email"
               value={email}
@@ -59,7 +65,7 @@ export function LoginPage() {
               required
             />
             <PasswordInput
-              label="Password"
+              label={t('login.password')}
               placeholder="••••••••"
               autoComplete="current-password"
               value={password}
@@ -72,7 +78,7 @@ export function LoginPage() {
               </Text>
             ) : null}
             <Button fullWidth type="submit" loading={isLoading} color="parfum">
-              Continue
+              {t('login.continue')}
             </Button>
           </Stack>
         </form>

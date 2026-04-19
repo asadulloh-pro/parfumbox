@@ -12,9 +12,11 @@ import { DatePickerInput } from '@mantine/dates';
 import { AreaChart } from '@mantine/charts';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGetDashboardStatsQuery } from '../app/parfumApi';
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const [range, setRange] = useState<[Date | null, Date | null]>([
     dayjs().subtract(13, 'day').toDate(),
     dayjs().toDate(),
@@ -40,15 +42,15 @@ export function DashboardPage() {
     <Stack gap="lg">
       <Group justify="space-between" align="flex-end" wrap="wrap">
         <div>
-          <Title order={2}>Dashboard</Title>
+          <Title order={2}>{t('dashboard.title')}</Title>
           <Text size="sm" c="dimmed">
-            Orders and new users per day (UTC) for the selected range.
+            {t('dashboard.subtitle')}
           </Text>
         </div>
         <DatePickerInput
           type="range"
-          label="Date range"
-          placeholder="Pick dates"
+          label={t('dashboard.dateRange')}
+          placeholder={t('dashboard.pickDates')}
           value={range}
           onChange={setRange}
           maxDate={new Date()}
@@ -57,8 +59,8 @@ export function DashboardPage() {
       </Group>
 
       {error ? (
-        <Alert color="red" title="Could not load stats">
-          Check that the API is running and CORS allows this origin.
+        <Alert color="red" title={t('dashboard.statsLoadErrorTitle')}>
+          {t('dashboard.statsLoadErrorBody')}
         </Alert>
       ) : null}
 
@@ -66,36 +68,42 @@ export function DashboardPage() {
         <Grid.Col span={{ base: 12, sm: 4 }}>
           <Card withBorder padding="lg" radius="md">
             <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-              Orders in range
+              {t('dashboard.ordersInRange')}
             </Text>
             <Group gap="xs" mt={4} align="center">
               {isLoading ? <Loader size="sm" /> : null}
-              <Title order={3}>{data?.totals.ordersInRange ?? '—'}</Title>
+              <Title order={3}>
+                {data?.totals.ordersInRange ?? t('common.dash')}
+              </Title>
             </Group>
           </Card>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 4 }}>
           <Card withBorder padding="lg" radius="md">
             <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-              New users in range
+              {t('dashboard.newUsersInRange')}
             </Text>
             <Group gap="xs" mt={4} align="center">
               {isLoading ? <Loader size="sm" /> : null}
-              <Title order={3}>{data?.totals.newUsersInRange ?? '—'}</Title>
+              <Title order={3}>
+                {data?.totals.newUsersInRange ?? t('common.dash')}
+              </Title>
             </Group>
           </Card>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 4 }}>
           <Card withBorder padding="lg" radius="md">
             <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
-              Products (catalog)
+              {t('dashboard.productCount')}
             </Text>
             <Group gap="xs" mt={4} align="center">
               {isLoading ? <Loader size="sm" /> : null}
-              <Title order={3}>{data?.totals.productCount ?? '—'}</Title>
+              <Title order={3}>
+                {data?.totals.productCount ?? t('common.dash')}
+              </Title>
             </Group>
             <Text size="xs" c="dimmed" mt={4}>
-              Total catalog size (not filtered by date).
+              {t('dashboard.productCountHint')}
             </Text>
           </Card>
         </Grid.Col>
@@ -103,10 +111,10 @@ export function DashboardPage() {
 
       <Card withBorder padding="lg" radius="md">
         <Text size="sm" fw={600} mb="md">
-          Activity
+          {t('dashboard.activity')}
           {isFetching && !isLoading ? (
             <Text span size="xs" c="dimmed" ml="xs">
-              Updating…
+              {t('dashboard.updating')}
             </Text>
           ) : null}
         </Text>
@@ -118,8 +126,16 @@ export function DashboardPage() {
             data={chartData}
             dataKey="label"
             series={[
-              { name: 'orders', color: 'parfum.6' },
-              { name: 'newUsers', color: 'teal.7' },
+              {
+                name: 'orders',
+                label: t('dashboard.chartOrders'),
+                color: 'parfum.6',
+              },
+              {
+                name: 'newUsers',
+                label: t('dashboard.chartNewUsers'),
+                color: 'teal.7',
+              },
             ]}
             curveType="monotone"
             withLegend

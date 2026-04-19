@@ -1,26 +1,23 @@
 import { Button, Spinner } from '@telegram-apps/telegram-ui';
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetOrderQuery, type OrderStatus } from '../../../app/parfumApi';
+import { useGetOrderQuery } from '../../../app/parfumApi';
 import { useAppSelector } from '../../../app/hooks';
+import { intlLocaleForLanguage } from '../../../i18n';
+import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
 import { formatPrice } from '../../../shared/lib/money';
 
-const statusLabels: Record<OrderStatus, string> = {
-  PENDING: 'Pending',
-  CONFIRMED: 'Confirmed',
-  SHIPPED: 'Shipped',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
-};
-
-function formatWhen(iso: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+function formatWhen(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'full',
     timeStyle: 'short',
   }).format(new Date(iso));
 }
 
 export function OrderDetailPage() {
+  const { t, i18n } = useTranslation();
+  const locale = intlLocaleForLanguage(i18n.language);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const token = useAppSelector((s) => s.auth.accessToken);
@@ -31,8 +28,11 @@ export function OrderDetailPage() {
   if (!token) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Order</h1>
-        <p className="page-placeholder">Sign in to view this order.</p>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('orderDetail.title')}</h1>
+        <p className="page-placeholder">{t('orderDetail.needSignIn')}</p>
       </div>
     );
   }
@@ -48,8 +48,11 @@ export function OrderDetailPage() {
   if (isError || !order) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Order</h1>
-        <p className="page-placeholder">Order not found.</p>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('orderDetail.title')}</h1>
+        <p className="page-placeholder">{t('orderDetail.notFound')}</p>
         <Button
           mode="filled"
           size="m"
@@ -57,7 +60,7 @@ export function OrderDetailPage() {
           style={{ marginTop: 16 }}
           onClick={() => navigate('/orders')}
         >
-          Back to orders
+          {t('orderDetail.backToOrders')}
         </Button>
       </div>
     );
@@ -65,11 +68,14 @@ export function OrderDetailPage() {
 
   return (
     <div className="tma-page">
+      <div style={{ marginBottom: 12 }}>
+        <LanguageSwitcher />
+      </div>
       <p className="page-placeholder" style={{ marginBottom: 4 }}>
-        {formatWhen(order.createdAt)}
+        {formatWhen(order.createdAt, locale)}
       </p>
       <h1 className="page-title" style={{ marginBottom: 8 }}>
-        {statusLabels[order.status]}
+        {t(`orderStatus.${order.status}`)}
       </h1>
       <p style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>
         {formatPrice(order.totalCents)}
@@ -77,7 +83,7 @@ export function OrderDetailPage() {
       {(order.deliveryPhone ||
         order.deliveryFirstName ||
         order.deliveryLastName) && (
-        <SectionBlock title="Delivery">
+        <SectionBlock title={t('orderDetail.delivery')}>
           {order.deliveryFirstName || order.deliveryLastName ? (
             <p style={{ margin: '0 0 8px' }}>
               {[order.deliveryFirstName, order.deliveryLastName]
@@ -90,7 +96,7 @@ export function OrderDetailPage() {
           ) : null}
         </SectionBlock>
       )}
-      <SectionBlock title="Items">
+      <SectionBlock title={t('orderDetail.items')}>
         <ul style={{ margin: 0, paddingLeft: 18 }}>
           {order.items.map((it) => (
             <li key={it.id} style={{ marginBottom: 8 }}>
@@ -107,7 +113,7 @@ export function OrderDetailPage() {
         style={{ marginTop: 20 }}
         onClick={() => navigate('/orders')}
       >
-        All orders
+        {t('orderDetail.allOrders')}
       </Button>
     </div>
   );

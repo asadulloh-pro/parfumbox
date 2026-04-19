@@ -1,0 +1,30 @@
+.pb-lang {
+  display: inline-flex;
+  gap: 0;
+  border-radius: 10px;
+  border: 1px solid var(--pb-border, rgba(0, 0, 0, 0.12));
+  overflow: hidden;
+}
+
+.pb-lang__btn {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  background: var(--tgui--secondary_bg_color, rgba(0, 0, 0, 0.04));
+  color: var(--pb-text-muted, rgba(0, 0, 0, 0.55));
+}
+
+.pb-lang__btn--active {
+  background: var(--tgui--button_color, var(--pb-gold-600, #c9a24d));
+  color: var(--tgui--button_text_color, #fff);
+}
+
+.pb-lang__btn:not(.pb-lang__btn--active):hover {
+  filter: brightness(0.97);
+}

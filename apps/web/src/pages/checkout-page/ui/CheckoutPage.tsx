@@ -1,5 +1,6 @@
 import { Button, Input, Spinner } from '@telegram-apps/telegram-ui';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   useCreateOrderMutation,
@@ -10,13 +11,18 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import type { CartLine } from '../../../features/cart/cartSlice';
 import { clearCart } from '../../../features/cart/cartSlice';
 import { useTelegramSession } from '../../../features/session/telegramSessionContext';
+import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
+import { formatPrice } from '../../../shared/lib/money';
 
 function toDateInputValue(iso: string | null | undefined): string {
   if (!iso) return '';
   return iso.slice(0, 10);
 }
 
-function errorMessage(err: unknown): string {
+function errorMessage(
+  err: unknown,
+  t: (key: string) => string,
+): string {
   if (err && typeof err === 'object' && 'data' in err) {
     const data = err.data;
     if (data && typeof data === 'object' && 'message' in data) {
@@ -31,9 +37,9 @@ function errorMessage(err: unknown): string {
     'status' in err &&
     err.status === 'FETCH_ERROR'
   ) {
-    return 'Network error — is the API running?';
+    return t('checkout.networkError');
   }
-  return 'Could not place order. Try again.';
+  return t('checkout.genericError');
 }
 
 function CheckoutForm({
@@ -43,6 +49,7 @@ function CheckoutForm({
   me: UserProfile;
   cartItems: CartLine[];
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [phone, setPhone] = useState(me.phone ?? '');
@@ -60,23 +67,26 @@ function CheckoutForm({
 
   return (
     <div className="tma-page">
-      <h1 className="page-title">Checkout</h1>
+      <div style={{ marginBottom: 12 }}>
+        <LanguageSwitcher />
+      </div>
+      <h1 className="page-title">{t('checkout.title')}</h1>
       <p className="page-placeholder" style={{ marginBottom: 16 }}>
-        Delivery details are saved to your profile when you place the order.
+        {t('checkout.hint')}
       </p>
       <div className="form-stack">
         <div className="form-field">
-          <label htmlFor="co-phone">Phone</label>
+          <label htmlFor="co-phone">{t('checkout.phone')}</label>
           <Input
             id="co-phone"
             type="tel"
-            placeholder="+1 …"
+            placeholder={t('checkout.phonePlaceholder')}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
         </div>
         <div className="form-field">
-          <label htmlFor="co-first">First name</label>
+          <label htmlFor="co-first">{t('checkout.firstName')}</label>
           <Input
             id="co-first"
             value={firstName}
@@ -84,7 +94,7 @@ function CheckoutForm({
           />
         </div>
         <div className="form-field">
-          <label htmlFor="co-last">Last name</label>
+          <label htmlFor="co-last">{t('checkout.lastName')}</label>
           <Input
             id="co-last"
             value={lastName}
@@ -92,7 +102,7 @@ function CheckoutForm({
           />
         </div>
         <div className="form-field">
-          <label htmlFor="co-birth">Birthday</label>
+          <label htmlFor="co-birth">{t('checkout.birthday')}</label>
           <Input
             id="co-birth"
             type="date"
@@ -103,7 +113,7 @@ function CheckoutForm({
       </div>
       {error ? (
         <p className="page-placeholder" style={{ color: 'var(--pb-danger, #b42318)' }}>
-          {errorMessage(error)}
+          {errorMessage(error, t)}
         </p>
       ) : null}
       <Button
@@ -133,18 +143,14 @@ function CheckoutForm({
           })();
         }}
       >
-        Place order ·{' '}
-        {new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          maximumFractionDigits: 0,
-        }).format(subtotal / 100)}
+        {t('checkout.placeOrder')} · {formatPrice(subtotal)}
       </Button>
     </div>
   );
 }
 
 export function CheckoutPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const token = useAppSelector((s) => s.auth.accessToken);
   const cartItems = useAppSelector((s) => s.cart.items);
@@ -167,7 +173,10 @@ export function CheckoutPage() {
     }
     return (
       <div className="tma-page">
-        <h1 className="page-title">Checkout</h1>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('checkout.title')}</h1>
         {telegramSignInError ? (
           <p
             className="page-placeholder"
@@ -176,13 +185,8 @@ export function CheckoutPage() {
             {telegramSignInError}
           </p>
         ) : null}
-        <p className="page-placeholder">
-          Open this app from your Telegram bot to sign in. To test checkout in a
-          normal browser, set <code style={{ fontSize: 13 }}>VITE_DEV=true</code>{' '}
-          and a valid <code style={{ fontSize: 13 }}>VITE_DEV_JWT</code> in{' '}
-          <code style={{ fontSize: 13 }}>apps/web/.env</code>, then restart the
-          Vite dev server.
-        </p>
+        <p className="page-placeholder">{t('checkout.needTelegram')}</p>
+        <p className="page-placeholder">{t('checkout.devHint')}</p>
       </div>
     );
   }
@@ -190,8 +194,11 @@ export function CheckoutPage() {
   if (cartItems.length === 0) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Checkout</h1>
-        <p className="page-placeholder">Your cart is empty.</p>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('checkout.title')}</h1>
+        <p className="page-placeholder">{t('checkout.cartEmpty')}</p>
         <Button
           mode="filled"
           size="m"
@@ -199,7 +206,7 @@ export function CheckoutPage() {
           style={{ marginTop: 16 }}
           onClick={() => navigate('/')}
         >
-          Browse catalog
+          {t('checkout.browseCatalog')}
         </Button>
       </div>
     );
@@ -216,8 +223,11 @@ export function CheckoutPage() {
   if (meError || !me) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Checkout</h1>
-        <p className="page-placeholder">Could not load your profile.</p>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('checkout.title')}</h1>
+        <p className="page-placeholder">{t('checkout.profileLoadError')}</p>
       </div>
     );
   }

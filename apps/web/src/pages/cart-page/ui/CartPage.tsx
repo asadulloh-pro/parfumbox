@@ -1,13 +1,16 @@
 import { Button, Placeholder } from '@telegram-apps/telegram-ui';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import {
   removeLine,
   setLineQuantity,
 } from '../../../features/cart/cartSlice';
+import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
 import { formatPrice } from '../../../shared/lib/money';
 
 export function CartPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const items = useAppSelector((s) => s.cart.items);
@@ -20,10 +23,13 @@ export function CartPage() {
   if (items.length === 0) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Cart</h1>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('cart.title')}</h1>
         <Placeholder
-          header="Cart is empty"
-          description="Items you add from product pages will appear here."
+          header={t('cart.emptyHeader')}
+          description={t('cart.emptyDescription')}
         />
       </div>
     );
@@ -31,7 +37,10 @@ export function CartPage() {
 
   return (
     <div className="tma-page">
-      <h1 className="page-title">Cart</h1>
+      <div style={{ marginBottom: 12 }}>
+        <LanguageSwitcher />
+      </div>
+      <h1 className="page-title">{t('cart.title')}</h1>
       <ul className="cart-list">
         {items.map((line) => (
           <li key={line.productId} className="cart-line">
@@ -59,7 +68,7 @@ export function CartPage() {
                       }),
                     )
                   }
-                  aria-label="Decrease quantity"
+                  aria-label={t('cart.ariaDecrease')}
                 >
                   −
                 </button>
@@ -75,7 +84,7 @@ export function CartPage() {
                       }),
                     )
                   }
-                  aria-label="Increase quantity"
+                  aria-label={t('cart.ariaIncrease')}
                 >
                   +
                 </button>
@@ -84,7 +93,7 @@ export function CartPage() {
                   className="cart-line__remove"
                   onClick={() => dispatch(removeLine(line.productId))}
                 >
-                  Remove
+                  {t('cart.remove')}
                 </button>
               </div>
             </div>
@@ -92,7 +101,7 @@ export function CartPage() {
         ))}
       </ul>
       <div className="cart-subtotal">
-        <span>Subtotal</span>
+        <span>{t('cart.subtotal')}</span>
         <strong>{formatPrice(subtotal)}</strong>
       </div>
       <Button
@@ -101,7 +110,7 @@ export function CartPage() {
         stretched
         onClick={() => navigate('/checkout')}
       >
-        Checkout
+        {t('cart.checkout')}
       </Button>
     </div>
   );

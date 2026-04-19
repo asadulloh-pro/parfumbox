@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Divider,
+  Group,
   Loader,
   Modal,
   Select,
@@ -10,8 +11,10 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   type OrderStatus,
   useGetOrdersQuery,
@@ -27,9 +30,34 @@ const STATUSES: OrderStatus[] = [
 ];
 
 export function OrdersPage() {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useGetOrdersQuery();
   const [updateStatus, { isLoading: updating }] = useUpdateOrderStatusMutation();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | null>(null);
+  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
+    null,
+    null,
+  ]);
+
+  const filteredOrders = useMemo(() => {
+    const list = data ?? [];
+    let out = list;
+    if (statusFilter) {
+      out = out.filter((o) => o.status === statusFilter);
+    }
+    const from = dateRange[0];
+    const to = dateRange[1];
+    if (from && to) {
+      const startMs = dayjs(from).startOf('day').valueOf();
+      const endMs = dayjs(to).endOf('day').valueOf();
+      out = out.filter((o) => {
+        const tMs = dayjs(o.createdAt).valueOf();
+        return tMs >= startMs && tMs <= endMs;
+      });
+    }
+    return out;
+  }, [data, statusFilter, dateRange]);
 
   const selectedOrder = selectedOrderId
     ? (data ?? []).find((order) => order.id === selectedOrderId) ?? null
@@ -38,7 +66,7 @@ export function OrdersPage() {
   const formatCurrency = (cents: number) => (cents / 100).toFixed(2);
   const renderValue = (value: string | null) => value ?? '-';
 
-  const rows = (data ?? []).map((o) => (
+  const rows = filteredOrders.map((o) => (
     <Table.Tr key={o.id}>
       <Table.Td>
         <Text size="xs" ff="monospace">
@@ -53,7 +81,10 @@ export function OrdersPage() {
       <Table.Td>
         <Select
           size="xs"
-          data={STATUSES.map((s) => ({ value: s, label: s }))}
+          data={STATUSES.map((s) => ({
+            value: s,
+            label: t(`orderStatus.${s}` as const),
+          }))}
           value={o.status}
           disabled={updating}
           onChange={(v) => {
@@ -63,11 +94,11 @@ export function OrdersPage() {
         />
       </Table.Td>
       <Table.Td>
-        <Text size="sm">{dayjs(o.createdAt).format('YYYY-MM-DD HH:mm')}</Text>
+        <Text size="sm">{dayjs(o.createdAt).format('DD-MMMM-YYYY HH:mm')}</Text>
       </Table.Td>
       <Table.Td>
         <Button size="xs" variant="light" onClick={() => setSelectedOrderId(o.id)}>
-          Details
+          {t('common.details')}
         </Button>
       </Table.Td>
     </Table.Tr>
@@ -75,30 +106,67 @@ export function OrdersPage() {
 
   return (
     <Stack gap="md">
-      <Title order={2}>Orders</Title>
+      <Title order={2}>{t('orders.title')}</Title>
       <Text size="sm" c="dimmed">
-        Update fulfillment status as orders progress.
+        {t('orders.subtitle')}
       </Text>
 
+      <Group align="flex-end" wrap="wrap" gap="md">
+        <Select
+          label={t('orders.filterStatus')}
+          placeholder={t('orders.allStatuses')}
+          clearable
+          data={STATUSES.map((s) => ({
+            value: s,
+            label: t(`orderStatus.${s}` as const),
+          }))}
+          value={statusFilter}
+          onChange={(v) => setStatusFilter((v ?? null) as OrderStatus | null)}
+          w={{ base: '100%', sm: 220 }}
+        />
+        <DatePickerInput
+          type="range"
+          label={t('orders.filterDateRange')}
+          placeholder={t('orders.pickDates')}
+          value={dateRange}
+          onChange={setDateRange}
+          clearable
+          w={{ base: '100%', sm: 320 }}
+        />
+      </Group>
+
+      {(data?.length ?? 0) > 0 ? (
+        <Text size="xs" c="dimmed">
+          {t('orders.showingCount', {
+            shown: filteredOrders.length,
+            total: data?.length ?? 0,
+          })}
+        </Text>
+      ) : null}
+
       {error ? (
-        <Alert color="red" title="Could not load orders">
-          Ensure you are logged in and the API is reachable.
+        <Alert color="red" title={t('orders.loadErrorTitle')}>
+          {t('orders.loadErrorBody')}
         </Alert>
       ) : null}
 
       {isLoading ? (
         <Loader />
+      ) : !filteredOrders.length && (data?.length ?? 0) > 0 ? (
+        <Alert color="gray" title={t('orders.noMatchesTitle')}>
+          {t('orders.noMatchesBody')}
+        </Alert>
       ) : (
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Order</Table.Th>
-              <Table.Th>Telegram user</Table.Th>
-              <Table.Th>Lines</Table.Th>
-              <Table.Th>Total</Table.Th>
-              <Table.Th w={160}>Status</Table.Th>
-              <Table.Th>Created</Table.Th>
-              <Table.Th w={100}>Action</Table.Th>
+              <Table.Th>{t('orders.colOrder')}</Table.Th>
+              <Table.Th>{t('orders.colTelegramUser')}</Table.Th>
+              <Table.Th>{t('orders.colLines')}</Table.Th>
+              <Table.Th>{t('orders.colTotal')}</Table.Th>
+              <Table.Th w={160}>{t('orders.colStatus')}</Table.Th>
+              <Table.Th>{t('orders.colCreated')}</Table.Th>
+              <Table.Th w={100}>{t('orders.colAction')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>{rows}</Table.Tbody>
@@ -108,37 +176,50 @@ export function OrdersPage() {
       <Modal
         opened={Boolean(selectedOrder)}
         onClose={() => setSelectedOrderId(null)}
-        title="Order details"
+        title={t('orders.modalTitle')}
         size="lg"
       >
         {selectedOrder ? (
           <Stack gap="sm">
-            <Title order={5}>Order details</Title>
-            <Text size="sm">ID: {selectedOrder.id}</Text>
+            <Title order={5}>{t('orders.sectionDetails')}</Title>
             <Text size="sm">
-              Created: {dayjs(selectedOrder.createdAt).format('YYYY-MM-DD HH:mm')}
-            </Text>
-            <Text size="sm">Status: {selectedOrder.status}</Text>
-            <Text size="sm">Subtotal: {formatCurrency(selectedOrder.subtotalCents)}</Text>
-            <Text size="sm">Total: {formatCurrency(selectedOrder.totalCents)}</Text>
-            <Text size="sm">
-              Delivery first name: {renderValue(selectedOrder.deliveryFirstName)}
+              {t('orders.id')}: {selectedOrder.id}
             </Text>
             <Text size="sm">
-              Delivery last name: {renderValue(selectedOrder.deliveryLastName)}
+              {t('orders.created')}:{' '}
+              {dayjs(selectedOrder.createdAt).format('DD-MMMM-YYYY HH:mm')}
             </Text>
-            <Text size="sm">Delivery phone: {renderValue(selectedOrder.deliveryPhone)}</Text>
+            <Text size="sm">
+              {t('orders.status')}: {t(`orderStatus.${selectedOrder.status}` as const)}
+            </Text>
+            <Text size="sm">
+              {t('orders.subtotal')}: {formatCurrency(selectedOrder.subtotalCents)}
+            </Text>
+            <Text size="sm">
+              {t('orders.total')}: {formatCurrency(selectedOrder.totalCents)}
+            </Text>
+            <Text size="sm">
+              {t('orders.deliveryFirstName')}:{' '}
+              {renderValue(selectedOrder.deliveryFirstName)}
+            </Text>
+            <Text size="sm">
+              {t('orders.deliveryLastName')}:{' '}
+              {renderValue(selectedOrder.deliveryLastName)}
+            </Text>
+            <Text size="sm">
+              {t('orders.deliveryPhone')}: {renderValue(selectedOrder.deliveryPhone)}
+            </Text>
 
             <Divider />
 
-            <Title order={5}>Order lines</Title>
+            <Title order={5}>{t('orders.sectionLines')}</Title>
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Product</Table.Th>
-                  <Table.Th>Qty</Table.Th>
-                  <Table.Th>Unit price</Table.Th>
-                  <Table.Th>Line total</Table.Th>
+                  <Table.Th>{t('orders.colProduct')}</Table.Th>
+                  <Table.Th>{t('orders.colQty')}</Table.Th>
+                  <Table.Th>{t('orders.colUnitPrice')}</Table.Th>
+                  <Table.Th>{t('orders.colLineTotal')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -157,12 +238,23 @@ export function OrdersPage() {
 
             <Divider />
 
-            <Title order={5}>User profile</Title>
-            <Text size="sm">Telegram ID: {selectedOrder.user.telegramId}</Text>
-            <Text size="sm">First name: {renderValue(selectedOrder.user.firstName)}</Text>
-            <Text size="sm">Last name: {renderValue(selectedOrder.user.lastName)}</Text>
-            <Text size="sm">Phone: {renderValue(selectedOrder.user.phone)}</Text>
-            <Text size="sm">Birth date: {renderValue(selectedOrder.user.birthDate)}</Text>
+            <Title order={5}>{t('orders.sectionUser')}</Title>
+            <Text size="sm">
+              {t('orders.telegramId')}: {selectedOrder.user.telegramId}
+            </Text>
+            <Text size="sm">
+              {t('orders.firstName')}: {renderValue(selectedOrder.user.firstName)}
+            </Text>
+            <Text size="sm">
+              {t('orders.lastName')}: {renderValue(selectedOrder.user.lastName)}
+            </Text>
+            <Text size="sm">
+              {t('orders.phone')}: {renderValue(selectedOrder.user.phone)}
+            </Text>
+            <Text size="sm">
+
+               {t('orders.birthDate')}: {selectedOrder?.user?.birthDate ? dayjs(selectedOrder.user.birthDate).format('DD-MMMM-YYYY') : '-'}
+            </Text>
           </Stack>
         ) : null}
       </Modal>

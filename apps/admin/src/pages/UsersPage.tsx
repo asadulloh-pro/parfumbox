@@ -1,8 +1,10 @@
 import { Alert, Loader, Stack, Table, Text, Title } from '@mantine/core';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import { useGetUsersQuery } from '../app/parfumApi';
 
 export function UsersPage() {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useGetUsersQuery();
 
   const rows = (data ?? []).map((u) => (
@@ -23,14 +25,14 @@ export function UsersPage() {
 
   return (
     <Stack gap="md">
-      <Title order={2}>Users</Title>
+      <Title order={2}>{t('users.title')}</Title>
       <Text size="sm" c="dimmed">
-        Telegram-linked customers (read-only).
+        {t('users.subtitle')}
       </Text>
 
       {error ? (
-        <Alert color="red" title="Could not load users">
-          Ensure you are logged in and the API is reachable.
+        <Alert color="red" title={t('users.loadErrorTitle')}>
+          {t('users.loadErrorBody')}
         </Alert>
       ) : null}
 
@@ -40,11 +42,11 @@ export function UsersPage() {
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Telegram ID</Table.Th>
-              <Table.Th>Username</Table.Th>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Phone</Table.Th>
-              <Table.Th>Joined</Table.Th>
+              <Table.Th>{t('users.colTelegramId')}</Table.Th>
+              <Table.Th>{t('users.colUsername')}</Table.Th>
+              <Table.Th>{t('users.colName')}</Table.Th>
+              <Table.Th>{t('users.colPhone')}</Table.Th>
+              <Table.Th>{t('users.colJoined')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>{rows}</Table.Tbody>

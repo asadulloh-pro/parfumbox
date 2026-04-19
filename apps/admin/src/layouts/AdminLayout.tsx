@@ -14,18 +14,20 @@ import {
   IconShoppingCart,
   IconUsers,
 } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../app/hooks';
 import { logout } from '../features/auth/authSlice';
-
-const nav = [
-  { to: '/dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
-  { to: '/orders', label: 'Orders', icon: IconShoppingCart },
-  { to: '/products', label: 'Products', icon: IconPackage },
-  { to: '/users', label: 'Users', icon: IconUsers },
-];
+import { LanguageSwitcher } from '../features/i18n/LanguageSwitcher';
 
 export function AdminLayout() {
+  const { t } = useTranslation();
+  const nav = [
+    { to: '/dashboard', label: t('nav.dashboard'), icon: IconLayoutDashboard },
+    { to: '/orders', label: t('nav.orders'), icon: IconShoppingCart },
+    { to: '/products', label: t('nav.products'), icon: IconPackage },
+    { to: '/users', label: t('nav.users'), icon: IconUsers },
+  ];
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [opened, { toggle }] = useDisclosure();
@@ -47,10 +49,11 @@ export function AdminLayout() {
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Title order={4} c="parfum.8">
-              Parfumbox Admin
+              {t('layout.brand')}
             </Title>
           </Group>
           <Group gap="sm">
+            <LanguageSwitcher />
             <Text size="sm" c="dimmed" visibleFrom="sm">
               {pathname}
             </Text>
@@ -63,7 +66,7 @@ export function AdminLayout() {
                 navigate('/login', { replace: true });
               }}
             >
-              Sign out
+              {t('common.signOut')}
             </Button>
           </Group>
         </Group>

@@ -1,40 +1,22 @@
+import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { useAppSelector } from '../../../app/hooks';
 
-const items = [
-  {
-    to: '/',
-    label: 'Home',
-    end: true,
-    icon: IconHome,
-  },
-  {
-    to: '/cart',
-    label: 'Cart',
-    end: false,
-    icon: IconCart,
-  },
-  {
-    to: '/profile',
-    label: 'Profile',
-    end: false,
-    icon: IconUser,
-  },
-  {
-    to: '/orders',
-    label: 'Orders',
-    end: false,
-    icon: IconOrders,
-  },
-] as const;
-
 export function AppBottomNav() {
+  const { t } = useTranslation();
   const cartCount = useAppSelector((s) =>
     s.cart.items.reduce((n, l) => n + l.quantity, 0),
   );
 
+  const items = [
+    { to: '/', label: t('nav.home'), end: true, icon: IconHome },
+    { to: '/cart', label: t('nav.cart'), end: false, icon: IconCart },
+    { to: '/profile', label: t('nav.profile'), end: false, icon: IconUser },
+    { to: '/orders', label: t('nav.orders'), end: false, icon: IconOrders },
+  ];
+
   return (
-    <nav className="tma-bottom-nav" aria-label="Main">
+    <nav className="tma-bottom-nav" aria-label={t('nav.main')}>
       {items.map(({ to, label, end, icon: Icon }) => (
         <NavLink
           key={to}

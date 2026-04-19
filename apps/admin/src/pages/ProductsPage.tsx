@@ -17,6 +17,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   type Product,
   useCreateProductMutation,
@@ -49,6 +50,7 @@ function ProductFormFields({
     stock: number | null | undefined;
   }) => void;
 }) {
+  const { t } = useTranslation();
   const [formTitle, setFormTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [priceCents, setPriceCents] = useState<number | string>(
@@ -72,34 +74,34 @@ function ProductFormFields({
   return (
     <Stack gap="md">
       <TextInput
-        label="Title"
+        label={t('products.formTitle')}
         value={formTitle}
         onChange={(e) => setFormTitle(e.currentTarget.value)}
         required
       />
       <Textarea
-        label="Description"
+        label={t('products.formDescription')}
         value={description}
         onChange={(e) => setDescription(e.currentTarget.value)}
         minRows={3}
       />
       <NumberInput
-        label="Price (minor units, e.g. cents)"
+        label={t('products.formPrice')}
         value={priceCents}
         onChange={(v) => setPriceCents(v)}
         min={0}
         required
       />
       <Textarea
-        label="Image URLs"
-        description="One per line or comma-separated"
+        label={t('products.formImages')}
+        description={t('products.formImagesHint')}
         value={imagesRaw}
         onChange={(e) => setImagesRaw(e.currentTarget.value)}
         minRows={2}
       />
       <NumberInput
-        label="Stock"
-        description="Leave empty for untracked inventory"
+        label={t('products.formStock')}
+        description={t('products.formStockHint')}
         value={stock}
         onChange={(v) => setStock(v === '' ? '' : v)}
         min={0}
@@ -107,7 +109,7 @@ function ProductFormFields({
       />
       <Group justify="flex-end" mt="md">
         <Button variant="default" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           color="parfum"
@@ -135,7 +137,7 @@ function ProductFormFields({
             });
           }}
         >
-          Save
+          {t('common.save')}
         </Button>
       </Group>
     </Stack>
@@ -143,6 +145,7 @@ function ProductFormFields({
 }
 
 export function ProductsPage() {
+  const { t } = useTranslation();
   const { data, isLoading, error } = useGetProductsQuery();
   const [createOpen, { open: openCreate, close: closeCreate }] =
     useDisclosure(false);
@@ -186,7 +189,7 @@ export function ProductsPage() {
             variant="subtle"
             color="parfum"
             onClick={() => setEditing(p)}
-            aria-label="Edit product"
+            aria-label={t('products.editAria')}
           >
             <IconPencil size={18} />
           </ActionIcon>
@@ -194,7 +197,7 @@ export function ProductsPage() {
             variant="subtle"
             color="red"
             onClick={() => setDeleting(p)}
-            aria-label="Delete product"
+            aria-label={t('products.deleteAria')}
           >
             <IconTrash size={18} />
           </ActionIcon>
@@ -206,19 +209,19 @@ export function ProductsPage() {
   return (
     <Stack gap="md">
       <Group justify="space-between">
-        <Title order={2}>Products</Title>
+        <Title order={2}>{t('products.title')}</Title>
         <Button
           leftSection={<IconPlus size={18} />}
           color="parfum"
           onClick={openCreate}
         >
-          Add product
+          {t('products.addProduct')}
         </Button>
       </Group>
 
       {error ? (
-        <Alert color="red" title="Could not load products">
-          Ensure you are logged in and the API is reachable.
+        <Alert color="red" title={t('products.loadErrorTitle')}>
+          {t('products.loadErrorBody')}
         </Alert>
       ) : null}
 
@@ -228,11 +231,11 @@ export function ProductsPage() {
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th> </Table.Th>
-              <Table.Th>Product</Table.Th>
-              <Table.Th>Price</Table.Th>
-              <Table.Th>Stock</Table.Th>
-              <Table.Th w={120}> </Table.Th>
+              <Table.Th>{t('products.colThumb')}</Table.Th>
+              <Table.Th>{t('products.colProduct')}</Table.Th>
+              <Table.Th>{t('products.colPrice')}</Table.Th>
+              <Table.Th>{t('products.colStock')}</Table.Th>
+              <Table.Th w={120}>{t('products.colActions')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>{rows}</Table.Tbody>
@@ -242,7 +245,7 @@ export function ProductsPage() {
       <Modal
         opened={createOpen}
         onClose={closeCreate}
-        title="New product"
+        title={t('products.modalNew')}
         size="lg"
       >
         <ProductFormFields
@@ -269,7 +272,7 @@ export function ProductsPage() {
       <Modal
         opened={editing !== null}
         onClose={() => setEditing(null)}
-        title="Edit product"
+        title={t('products.modalEdit')}
         size="lg"
       >
         {editing ? (
@@ -297,14 +300,14 @@ export function ProductsPage() {
       <Modal
         opened={deleting !== null}
         onClose={() => setDeleting(null)}
-        title="Delete product"
+        title={t('products.modalDelete')}
       >
         <Text size="sm">
-          Delete <strong>{deleting?.title}</strong>? This cannot be undone.
+          {t('products.deleteConfirm', { title: deleting?.title ?? '' })}
         </Text>
         <Group justify="flex-end" mt="lg">
           <Button variant="default" onClick={() => setDeleting(null)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             color="red"
@@ -315,7 +318,7 @@ export function ProductsPage() {
               setDeleting(null);
             }}
           >
-            Delete
+            {t('common.delete')}
           </Button>
         </Group>
       </Modal>

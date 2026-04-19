@@ -1,5 +1,6 @@
 import { Button, Input, Spinner } from '@telegram-apps/telegram-ui';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   useGetMeQuery,
   usePatchMeMutation,
@@ -7,6 +8,7 @@ import {
 } from '../../../app/parfumApi';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { setUser } from '../../../features/auth/authSlice';
+import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
 import { useTelegramSession } from '../../../features/session/telegramSessionContext';
 
 function toDateInputValue(iso: string | null | undefined): string {
@@ -15,6 +17,7 @@ function toDateInputValue(iso: string | null | undefined): string {
 }
 
 function ProfileEditor({ me }: { me: UserProfile }) {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const authUser = useAppSelector((s) => s.auth.user);
 
@@ -45,14 +48,17 @@ function ProfileEditor({ me }: { me: UserProfile }) {
 
   return (
     <div className="tma-page">
-      <h1 className="page-title">Profile</h1>
+      <div style={{ marginBottom: 12 }}>
+        <LanguageSwitcher />
+      </div>
+      <h1 className="page-title">{t('profile.title')}</h1>
       <p className="page-placeholder" style={{ marginBottom: 16 }}>
-        {me.telegramUsername ? `@${me.telegramUsername}` : 'Telegram'}{' '}
+        {me.telegramUsername ? `@${me.telegramUsername}` : t('profile.telegramLine')}{' '}
         · ID {me.telegramId}
       </p>
       <div className="form-stack">
         <div className="form-field">
-          <label htmlFor="pf-phone">Phone</label>
+          <label htmlFor="pf-phone">{t('profile.phone')}</label>
           <Input
             id="pf-phone"
             type="tel"
@@ -61,7 +67,7 @@ function ProfileEditor({ me }: { me: UserProfile }) {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="pf-first">First name</label>
+          <label htmlFor="pf-first">{t('profile.firstName')}</label>
           <Input
             id="pf-first"
             value={firstName}
@@ -69,7 +75,7 @@ function ProfileEditor({ me }: { me: UserProfile }) {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="pf-last">Last name</label>
+          <label htmlFor="pf-last">{t('profile.lastName')}</label>
           <Input
             id="pf-last"
             value={lastName}
@@ -77,7 +83,7 @@ function ProfileEditor({ me }: { me: UserProfile }) {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="pf-birth">Birthday</label>
+          <label htmlFor="pf-birth">{t('profile.birthday')}</label>
           <Input
             id="pf-birth"
             type="date"
@@ -94,12 +100,15 @@ function ProfileEditor({ me }: { me: UserProfile }) {
         disabled={saving}
         onClick={() => void handleSave()}
       >
-        Save
+        {t('profile.save')}
       </Button>
       {authUser ? (
         <p className="page-placeholder" style={{ marginTop: 20 }}>
-          Signed in as {authUser.firstName ?? 'User'}{' '}
-          {authUser.lastName ?? ''}
+          {t('profile.signedInAs', {
+            name:
+              [authUser.firstName, authUser.lastName].filter(Boolean).join(' ') ||
+              t('profile.userFallback'),
+          })}
         </p>
       ) : null}
     </div>
@@ -107,6 +116,7 @@ function ProfileEditor({ me }: { me: UserProfile }) {
 }
 
 export function ProfilePage() {
+  const { t } = useTranslation();
   const token = useAppSelector((s) => s.auth.accessToken);
   const { isTelegramAuthPending, telegramSignInError } = useTelegramSession();
 
@@ -124,7 +134,10 @@ export function ProfilePage() {
     }
     return (
       <div className="tma-page">
-        <h1 className="page-title">Profile</h1>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('profile.title')}</h1>
         {telegramSignInError ? (
           <p
             className="page-placeholder"
@@ -133,12 +146,7 @@ export function ProfilePage() {
             {telegramSignInError}
           </p>
         ) : null}
-        <p className="page-placeholder">
-          Open the app from your Telegram bot to load your account. In a browser,
-          set <code style={{ fontSize: 13 }}>VITE_DEV=true</code> and{' '}
-          <code style={{ fontSize: 13 }}>VITE_DEV_JWT</code> in{' '}
-          <code style={{ fontSize: 13 }}>apps/web/.env</code>, then restart Vite.
-        </p>
+        <p className="page-placeholder">{t('profile.signInHint')}</p>
       </div>
     );
   }
@@ -154,8 +162,11 @@ export function ProfilePage() {
   if (isError || !me) {
     return (
       <div className="tma-page">
-        <h1 className="page-title">Profile</h1>
-        <p className="page-placeholder">Could not load profile.</p>
+        <div style={{ marginBottom: 12 }}>
+          <LanguageSwitcher />
+        </div>
+        <h1 className="page-title">{t('profile.title')}</h1>
+        <p className="page-placeholder">{t('profile.loadError')}</p>
       </div>
     );
   }

@@ -1,0 +1,87 @@
+{
+  "language": {
+    "uz": "Узбекский",
+    "ru": "Русский",
+    "label": "Язык"
+  },
+  "nav": {
+    "main": "Основная навигация",
+    "home": "Главная",
+    "cart": "Корзина",
+    "profile": "Профиль",
+    "orders": "Заказы"
+  },
+  "catalog": {
+    "loadErrorTitle": "Не удалось загрузить товары",
+    "loadError": "Не удалось загрузить товары ({{url}}). Проверьте, что API на порту 3000 запущен и перезапустите Vite. Для продакшена задайте VITE_API_BASE_URL на URL вашего API."
+  },
+  "cart": {
+    "title": "Корзина",
+    "emptyHeader": "Корзина пуста",
+    "emptyDescription": "Товары, которые вы добавите на странице товара, появятся здесь.",
+    "subtotal": "Подытог",
+    "checkout": "Оформить заказ",
+    "remove": "Удалить",
+    "ariaDecrease": "Уменьшить количество",
+    "ariaIncrease": "Увеличить количество"
+  },
+  "checkout": {
+    "title": "Оформление",
+    "hint": "При оформлении заказа данные доставки сохраняются в профиль.",
+    "phone": "Телефон",
+    "phonePlaceholder": "+7 …",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "birthday": "День рождения",
+    "placeOrder": "Оформить заказ",
+    "networkError": "Ошибка сети — API запущен?",
+    "genericError": "Не удалось оформить заказ. Попробуйте снова.",
+    "needTelegram": "Войдите через Telegram, чтобы видеть заказы.",
+    "devHint": "Для теста в браузере задайте VITE_DEV=true и действующий VITE_DEV_JWT в apps/web/.env, затем перезапустите Vite.",
+    "cartEmpty": "Ваша корзина пуста.",
+    "browseCatalog": "Перейти в каталог",
+    "profileLoadError": "Не удалось загрузить профиль."
+  },
+  "product": {
+    "notFoundTitle": "Не найдено",
+    "notFoundBody": "Этот товар недоступен. Вернитесь в каталог.",
+    "backExplore": "В каталог",
+    "inStock": "В наличии: {{count}}",
+    "addToCart": "В корзину"
+  },
+  "orders": {
+    "title": "Заказы",
+    "needTelegram": "Войдите через Telegram, чтобы видеть заказы.",
+    "loadError": "Не удалось загрузить заказы.",
+    "empty": "Пока нет заказов."
+  },
+  "orderStatus": {
+    "PENDING": "Ожидает",
+    "CONFIRMED": "Подтверждён",
+    "SHIPPED": "Отправлен",
+    "DELIVERED": "Доставлен",
+    "CANCELLED": "Отменён"
+  },
+  "orderDetail": {
+    "title": "Заказ",
+    "needSignIn": "Войдите, чтобы просмотреть заказ.",
+    "notFound": "Заказ не найден.",
+    "backToOrders": "К списку заказов",
+    "delivery": "Доставка",
+    "items": "Товары",
+    "allOrders": "Все заказы"
+  },
+  "profile": {
+    "title": "Профиль",
+    "telegramLine": "Telegram",
+    "signInHint": "Откройте приложение из Telegram-бота, чтобы загрузить аккаунт. В браузере задайте VITE_DEV=true и VITE_DEV_JWT в apps/web/.env, затем перезапустите Vite.",
+    "loadError": "Не удалось загрузить профиль.",
+    "phone": "Телефон",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "birthday": "День рождения",
+    "save": "Сохранить",
+    "signedInAs": "Вы вошли как {{name}}",
+    "userFallback": "Пользователь"
+  }
+}
