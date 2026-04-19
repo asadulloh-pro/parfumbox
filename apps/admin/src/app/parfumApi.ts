@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery, type BaseQueryFn } from '@reduxjs/toolkit/query/react';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { logout } from '../features/auth/authSlice';
+import { getParfumApiBaseUrl } from './apiBase';
+import { normalizePaginated, type PaginatedResult } from './paginationNormalize';
 
-const baseUrl =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
+const baseUrl = getParfumApiBaseUrl();
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl,
@@ -43,11 +44,30 @@ export type DashboardStats = {
   series: Array<{ date: string; orders: number; newUsers: number }>;
 };
 
+export type SizePreset = {
+  id: string;
+  slug: string;
+  label: string;
+  grams: number;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProductSizeOption = {
+  id: string;
+  presetId: string;
+  label: string;
+  grams: number;
+  priceUzs: number;
+};
+
 export type Product = {
   id: string;
   title: string;
   description: string;
-  priceCents: number;
+  priceUzs: number;
+  sizes: ProductSizeOption[] | null;
   images: string[];
   stock: number | null;
   createdAt: string;
@@ -59,8 +79,11 @@ export type OrderItem = {
   orderId: string;
   productId: string | null;
   quantity: number;
-  unitPriceCents: number;
+  unitPriceUzs: number;
   titleSnapshot: string;
+  sizeId: string | null;
+  sizeLabelSnapshot: string | null;
+  gramsSnapshot: number | null;
 };
 
 export type OrderStatus =
@@ -74,8 +97,8 @@ export type AdminOrder = {
   id: string;
   userId: string;
   status: OrderStatus;
-  subtotalCents: number;
-  totalCents: number;
+  subtotalUzs: number;
+  totalUzs: number;
   deliveryPhone: string | null;
   deliveryFirstName: string | null;
   deliveryLastName: string | null;
@@ -104,10 +127,30 @@ export type TelegramUser = {
   updatedAt: string;
 };
 
+export type { PaginatedResult };
+
+export type AdminOrdersQuery = {
+  page: number;
+  pageSize: number;
+  status?: OrderStatus;
+  createdFrom?: string;
+  createdTo?: string;
+};
+
+export type AdminNotificationKind = 'ORDER_CREATED' | 'ORDER_UPDATED';
+
+export type AdminNotificationItem = {
+  id: string;
+  kind: AdminNotificationKind;
+  orderId: string;
+  read: boolean;
+  createdAt: string;
+};
+
 export const parfumApi = createApi({
   reducerPath: 'parfumApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Product', 'Order', 'User', 'Stats'],
+  tagTypes: ['Product', 'Order', 'User', 'Stats', 'Notification', 'SizePreset'],
   endpoints: (build) => ({
     login: build.mutation<LoginResponse, { email: string; password: string }>({
       query: (body) => ({
@@ -126,12 +169,64 @@ export const parfumApi = createApi({
       }),
       providesTags: ['Stats'],
     }),
-    getProducts: build.query<Product[], void>({
-      query: () => '/products',
+    getSizePresets: build.query<PaginatedResult<SizePreset>, { page: number; pageSize: number }>({
+      query: ({ page, pageSize }) => ({
+        url: '/admin/size-presets',
+        params: { page, pageSize },
+      }),
+      transformResponse: (response: unknown, _m, arg) =>
+        normalizePaginated<SizePreset>(response, { page: arg.page, pageSize: arg.pageSize }),
       providesTags: (result) =>
-        result
+        result?.items?.length
           ? [
-              ...result.map((p) => ({ type: 'Product' as const, id: p.id })),
+              ...result.items.map((p) => ({ type: 'SizePreset' as const, id: p.id })),
+              { type: 'SizePreset', id: 'LIST' },
+            ]
+          : [{ type: 'SizePreset', id: 'LIST' }],
+    }),
+    createSizePreset: build.mutation<
+      SizePreset,
+      { slug: string; label: string; grams: number; sortOrder?: number }
+    >({
+      query: (body) => ({
+        url: '/admin/size-presets',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [{ type: 'SizePreset', id: 'LIST' }],
+    }),
+    updateSizePreset: build.mutation<
+      SizePreset,
+      { id: string; body: Partial<{ slug: string; label: string; grams: number; sortOrder: number }> }
+    >({
+      query: ({ id, body }) => ({
+        url: `/admin/size-presets/${id}`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [
+        { type: 'SizePreset', id },
+        { type: 'SizePreset', id: 'LIST' },
+      ],
+    }),
+    deleteSizePreset: build.mutation<{ ok: true }, string>({
+      query: (id) => ({
+        url: `/admin/size-presets/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'SizePreset', id: 'LIST' }],
+    }),
+    getProducts: build.query<PaginatedResult<Product>, { page: number; pageSize: number }>({
+      query: ({ page, pageSize }) => ({
+        url: '/products',
+        params: { page, pageSize },
+      }),
+      transformResponse: (response: unknown, _m, arg) =>
+        normalizePaginated<Product>(response, { page: arg.page, pageSize: arg.pageSize }),
+      providesTags: (result) =>
+        result?.items?.length
+          ? [
+              ...result.items.map((p) => ({ type: 'Product' as const, id: p.id })),
               { type: 'Product', id: 'LIST' },
             ]
           : [{ type: 'Product', id: 'LIST' }],
@@ -141,7 +236,8 @@ export const parfumApi = createApi({
       {
         title: string;
         description?: string;
-        priceCents: number;
+        priceUzs: number;
+        sizes?: Array<{ presetId: string; priceUzs: number }>;
         images?: string[];
         stock?: number;
       }
@@ -156,7 +252,8 @@ export const parfumApi = createApi({
         body: Partial<{
           title: string;
           description: string;
-          priceCents: number;
+          priceUzs: number;
+          sizes: Array<{ presetId: string; priceUzs: number }> | [];
           images: string[];
           stock: number | null;
         }>;
@@ -181,15 +278,27 @@ export const parfumApi = createApi({
         'Stats',
       ],
     }),
-    getOrders: build.query<AdminOrder[], void>({
-      query: () => '/admin/orders',
+    getOrders: build.query<PaginatedResult<AdminOrder>, AdminOrdersQuery>({
+      query: ({ page, pageSize, status, createdFrom, createdTo }) => {
+        const params: Record<string, string | number> = { page, pageSize };
+        if (status) params.status = status;
+        if (createdFrom) params.createdFrom = createdFrom;
+        if (createdTo) params.createdTo = createdTo;
+        return { url: '/admin/orders', params };
+      },
+      transformResponse: (response: unknown, _m, arg) =>
+        normalizePaginated<AdminOrder>(response, { page: arg.page, pageSize: arg.pageSize }),
       providesTags: (result) =>
-        result
+        result?.items?.length
           ? [
-              ...result.map((o) => ({ type: 'Order' as const, id: o.id })),
+              ...result.items.map((o) => ({ type: 'Order' as const, id: o.id })),
               { type: 'Order', id: 'LIST' },
             ]
           : [{ type: 'Order', id: 'LIST' }],
+    }),
+    getAdminOrder: build.query<AdminOrder, string>({
+      query: (id) => `/admin/orders/${id}`,
+      providesTags: (_r, _e, id) => [{ type: 'Order', id }],
     }),
     updateOrderStatus: build.mutation<
       { id: string; status: OrderStatus; updatedAt: string },
@@ -203,18 +312,43 @@ export const parfumApi = createApi({
       invalidatesTags: (_r, _e, { id }) => [
         { type: 'Order', id },
         { type: 'Order', id: 'LIST' },
-        'Stats',
       ],
     }),
-    getUsers: build.query<TelegramUser[], void>({
-      query: () => '/admin/users',
+    getUsers: build.query<PaginatedResult<TelegramUser>, { page: number; pageSize: number }>({
+      query: ({ page, pageSize }) => ({
+        url: '/admin/users',
+        params: { page, pageSize },
+      }),
+      transformResponse: (response: unknown, _m, arg) =>
+        normalizePaginated<TelegramUser>(response, { page: arg.page, pageSize: arg.pageSize }),
       providesTags: (result) =>
-        result
+        result?.items?.length
           ? [
-              ...result.map((u) => ({ type: 'User' as const, id: u.id })),
+              ...result.items.map((u) => ({ type: 'User' as const, id: u.id })),
               { type: 'User', id: 'LIST' },
             ]
           : [{ type: 'User', id: 'LIST' }],
+    }),
+    getNotifications: build.query<AdminNotificationItem[], void>({
+      query: () => ({
+        url: '/admin/notifications',
+        params: { limit: 50 },
+      }),
+      providesTags: [{ type: 'Notification', id: 'LIST' }],
+    }),
+    markNotificationRead: build.mutation<{ ok: true }, string>({
+      query: (id) => ({
+        url: `/admin/notifications/${id}/read`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: [{ type: 'Notification', id: 'LIST' }],
+    }),
+    markAllNotificationsRead: build.mutation<{ marked: number }, void>({
+      query: () => ({
+        url: '/admin/notifications/read-all',
+        method: 'POST',
+      }),
+      invalidatesTags: [{ type: 'Notification', id: 'LIST' }],
     }),
   }),
 });
@@ -222,11 +356,19 @@ export const parfumApi = createApi({
 export const {
   useLoginMutation,
   useGetDashboardStatsQuery,
+  useGetSizePresetsQuery,
+  useCreateSizePresetMutation,
+  useUpdateSizePresetMutation,
+  useDeleteSizePresetMutation,
   useGetProductsQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
   useGetOrdersQuery,
+  useGetAdminOrderQuery,
   useUpdateOrderStatusMutation,
   useGetUsersQuery,
+  useGetNotificationsQuery,
+  useMarkNotificationReadMutation,
+  useMarkAllNotificationsReadMutation,
 } = parfumApi;

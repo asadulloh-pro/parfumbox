@@ -205,6 +205,72 @@ a {
   min-height: 40vh;
 }
 
+/* Product detail — stacked, labeled blocks */
+.product-detail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.product-detail-price-card {
+  border-radius: var(--pb-radius-md);
+  border: 1px solid var(--pb-border);
+  background: var(--pb-surface-2);
+  padding: 14px 16px;
+}
+
+.product-detail-price-card__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pb-text-muted);
+  margin: 0 0 6px;
+}
+
+.product-detail-price-card__amount {
+  margin: 0;
+}
+
+.product-detail-savings {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed color-mix(in srgb, var(--pb-border) 70%, transparent);
+}
+
+.product-detail-savings__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pb-green-800);
+  margin: 0 0 10px;
+}
+
+.product-detail-savings__list {
+  margin: 0;
+  padding: 0 0 0 1.1em;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--pb-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.product-detail-savings__list li {
+  padding-inline-start: 2px;
+}
+
+.product-detail-desc {
+  padding: 4px 16px 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: var(--pb-text);
+}
+
 .cart-list {
   list-style: none;
   margin: 0 0 16px;

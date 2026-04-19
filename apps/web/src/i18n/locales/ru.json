@@ -13,7 +13,9 @@
   },
   "catalog": {
     "loadErrorTitle": "Не удалось загрузить товары",
-    "loadError": "Не удалось загрузить товары ({{url}}). Проверьте, что API на порту 3000 запущен и перезапустите Vite. Для продакшена задайте VITE_API_BASE_URL на URL вашего API."
+    "loadError": "Не удалось загрузить товары ({{url}}). Проверьте, что API на порту 3000 запущен и перезапустите Vite. Для продакшена задайте VITE_API_BASE_URL на URL вашего API.",
+    "from": "от",
+    "empty": "В каталоге пока нет товаров."
   },
   "cart": {
     "title": "Корзина",
@@ -47,7 +49,18 @@
     "notFoundBody": "Этот товар недоступен. Вернитесь в каталог.",
     "backExplore": "В каталог",
     "inStock": "В наличии: {{count}}",
-    "addToCart": "В корзину"
+    "outOfStock": "Нет в наличии (0 шт.)",
+    "unavailable": "Недоступно",
+    "addToCart": "В корзину",
+    "sizeLabel": "Фасовка",
+    "sizeRowMeta": "{{price}} · {{grams}} г",
+    "selectedPriceTitle": "Цена за выбранную фасовку",
+    "basePriceTitle": "Цена",
+    "stockSectionTitle": "Наличие",
+    "descriptionTitle": "Описание",
+    "savingsPerGram": "Экономите {{amount}} за грамм по сравнению с меньшей фасовкой.",
+    "savingsTotal": "Всего экономия {{amount}}.",
+    "savingsLabel": "Выгода при объёме"
   },
   "orders": {
     "title": "Заказы",

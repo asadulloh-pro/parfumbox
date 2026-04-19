@@ -11,6 +11,7 @@
     "dashboard": "Boshqaruv paneli",
     "orders": "Buyurtmalar",
     "products": "Mahsulotlar",
+    "sizePresets": "Hajmlar",
     "users": "Foydalanuvchilar"
   },
   "common": {
@@ -19,7 +20,9 @@
     "save": "Saqlash",
     "delete": "O‘chirish",
     "details": "Tafsilotlar",
-    "dash": "—"
+    "dash": "—",
+    "pageSize": "Sahifada",
+    "tableRowsRange": "{{start}}–{{end}} / {{total}}"
   },
   "login": {
     "title": "Kirish",
@@ -85,7 +88,8 @@
     "pickDates": "Sanani tanlang",
     "showingCount": "Ko‘rsatilmoqda: {{shown}} / {{total}}",
     "noMatchesTitle": "Filtrlarga mos buyurtmalar yo‘q",
-    "noMatchesBody": "Status yoki sanalarni o‘zgartirib ko‘ring."
+    "noMatchesBody": "Status yoki sanalarni o‘zgartirib ko‘ring.",
+    "noneYet": "Hali buyurtmalar yo‘q."
   },
   "orderStatus": {
     "PENDING": "Kutilmoqda",
@@ -93,6 +97,21 @@
     "SHIPPED": "Yo‘lda",
     "DELIVERED": "Yetkazilgan",
     "CANCELLED": "Bekor qilingan"
+  },
+  "sizePresets": {
+    "title": "Hajm shablonlari",
+    "add": "Shablon qo‘shish",
+    "intro": "Bu yerda bir marta «10 g», «30 g» kabi hajmlarni saqlaysiz. Mahsulotda faqat narxlarni kiritasiz.",
+    "loadErrorTitle": "Shablonlarni yuklab bo‘lmadi",
+    "loadErrorBody": "API ishlayaptimi tekshiring.",
+    "colSlug": "Slug (buyurtma ID)",
+    "colLabel": "Ko‘rinish",
+    "colGrams": "Gramm",
+    "colSort": "Tartib",
+    "modalNew": "Yangi shablon",
+    "modalEdit": "Shablonni tahrirlash",
+    "modalDelete": "Shablonni o‘chirish",
+    "deleteConfirm": "«{{label}}» o‘chirilsinmi?"
   },
   "products": {
     "title": "Mahsulotlar",
@@ -102,6 +121,7 @@
     "colThumb": " ",
     "colProduct": "Mahsulot",
     "colPrice": "Narx",
+    "colVariants": "Hajmlar",
     "colStock": "Ombor",
     "colActions": " ",
     "modalNew": "Yangi mahsulot",
@@ -110,13 +130,32 @@
     "deleteConfirm": "{{title}} o‘chirilsinmi? Bu qayta tiklanmaydi.",
     "formTitle": "Sarlavha",
     "formDescription": "Tavsif",
-    "formPrice": "Narx (kichik birliklar, masalan sent)",
+    "formPrice": "Asosiy narx (butun so‘m)",
+    "formPriceHintUzs": "Faqat bitta narx bilan sotilsa majburiy. Hajm belgilansa, katalogda asosan 10 g narxi ko‘rinadi.",
+    "sizesSection": "Hajmlar va narxlari",
+    "sizesFromPresetsHint": "Oldindan «Hajmlar» bo‘limidagi shablondan tanlang va har biriga narx kiriting (butun son, masalan 200000).",
+    "noPresetsWarning": "Hali hajm shabloni yo‘q. Avval menyudan «Hajmlar» sahifasida 10 g va boshqalarni yarating.",
+    "priceUzs": "Narx (UZS)",
+    "priceRequiredForSelectedSizes": "Belgilgan har bir hajm uchun musbat butun narx kiriting.",
+    "sizeLabelCol": "Ko‘rinish",
+    "sizeGrams": "Gramm",
     "formImages": "Rasm URL manzillari",
     "formImagesHint": "Har qatorda bitta yoki vergul bilan ajratilgan",
     "formStock": "Ombor",
     "formStockHint": "Cheksiz zaxira uchun bo‘sh qoldiring",
     "editAria": "Mahsulotni tahrirlash",
     "deleteAria": "Mahsulotni o‘chirish"
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "markAllRead": "Barchasini o‘qilgan deb belgilash",
+    "empty": "Hozircha bildirishnoma yo‘q.",
+    "loadError": "Bildirishnomalarni yuklab bo‘lmadi.",
+    "toastBody": "Buyurtma {{order}}",
+    "kind": {
+      "ORDER_CREATED": "Yangi buyurtma",
+      "ORDER_UPDATED": "Buyurtma yangilandi"
+    }
   },
   "users": {
     "title": "Foydalanuvchilar",

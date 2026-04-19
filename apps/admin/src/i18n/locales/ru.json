@@ -11,6 +11,7 @@
     "dashboard": "Панель",
     "orders": "Заказы",
     "products": "Товары",
+    "sizePresets": "Фасовки",
     "users": "Пользователи"
   },
   "common": {
@@ -19,7 +20,9 @@
     "save": "Сохранить",
     "delete": "Удалить",
     "details": "Подробнее",
-    "dash": "—"
+    "dash": "—",
+    "pageSize": "На странице",
+    "tableRowsRange": "{{start}}–{{end}} из {{total}}"
   },
   "login": {
     "title": "Вход",
@@ -85,7 +88,8 @@
     "pickDates": "Выберите даты",
     "showingCount": "Показано {{shown}} из {{total}}",
     "noMatchesTitle": "Нет заказов по фильтрам",
-    "noMatchesBody": "Измените статус или период дат, чтобы увидеть список."
+    "noMatchesBody": "Измените статус или период дат, чтобы увидеть список.",
+    "noneYet": "Заказов пока нет."
   },
   "orderStatus": {
     "PENDING": "Ожидает",
@@ -93,6 +97,21 @@
     "SHIPPED": "Отправлен",
     "DELIVERED": "Доставлен",
     "CANCELLED": "Отменён"
+  },
+  "sizePresets": {
+    "title": "Шаблоны фасовок",
+    "add": "Добавить шаблон",
+    "intro": "Задайте объёмы один раз (10 г, 30 г…). На товаре для каждой строки указываете только цену.",
+    "loadErrorTitle": "Не удалось загрузить шаблоны",
+    "loadErrorBody": "Проверьте доступность API.",
+    "colSlug": "Slug (ид. в заказе)",
+    "colLabel": "Подпись",
+    "colGrams": "Граммы",
+    "colSort": "Порядок",
+    "modalNew": "Новый шаблон",
+    "modalEdit": "Редактировать шаблон",
+    "modalDelete": "Удалить шаблон",
+    "deleteConfirm": "Удалить «{{label}}»?"
   },
   "products": {
     "title": "Товары",
@@ -102,6 +121,7 @@
     "colThumb": " ",
     "colProduct": "Товар",
     "colPrice": "Цена",
+    "colVariants": "Фасовки",
     "colStock": "Остаток",
     "colActions": " ",
     "modalNew": "Новый товар",
@@ -110,13 +130,32 @@
     "deleteConfirm": "Удалить «{{title}}»? Это действие нельзя отменить.",
     "formTitle": "Название",
     "formDescription": "Описание",
-    "formPrice": "Цена (в копейках и т.п.)",
+    "formPrice": "Базовая цена (целые сумы)",
+    "formPriceHintUzs": "Обязательна для товара без фасовок. Если фасовки есть, в каталоге основная цена берётся от 10 г при наличии.",
+    "sizesSection": "Фасовки и цены",
+    "sizesFromPresetsHint": "Выберите сохранённые шаблоны из раздела «Фасовки» и укажите цену целым числом (например 200000).",
+    "noPresetsWarning": "Нет ни одного шаблона. Сначала добавьте фасовки на странице «Фасовки».",
+    "priceUzs": "Цена (UZS)",
+    "priceRequiredForSelectedSizes": "Для каждой выбранной фасовки укажите целое неотрицательное число.",
+    "sizeLabelCol": "Подпись",
+    "sizeGrams": "Граммы",
     "formImages": "URL изображений",
     "formImagesHint": "По одному в строке или через запятую",
     "formStock": "Остаток",
     "formStockHint": "Оставьте пустым, если остаток не ведётся",
     "editAria": "Редактировать товар",
     "deleteAria": "Удалить товар"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "markAllRead": "Отметить все прочитанными",
+    "empty": "Пока нет уведомлений.",
+    "loadError": "Не удалось загрузить уведомления.",
+    "toastBody": "Заказ {{order}}",
+    "kind": {
+      "ORDER_CREATED": "Новый заказ",
+      "ORDER_UPDATED": "Заказ обновлён"
+    }
   },
   "users": {
     "title": "Пользователи",

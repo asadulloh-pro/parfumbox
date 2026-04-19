@@ -1,13 +1,31 @@
 import { Alert, Loader, Stack, Table, Text, Title } from '@mantine/core';
 import dayjs from 'dayjs';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGetUsersQuery } from '../app/parfumApi';
+import { useListSearchParams } from '../shared/lib/useListSearchParams';
+import { paginationFromTotal } from '../shared/lib/serverPagination';
+import { TablePaginationFooter } from '../shared/ui/TablePaginationFooter';
 
 export function UsersPage() {
   const { t } = useTranslation();
-  const { data, isLoading, error } = useGetUsersQuery();
+  const { page, setPage, pageSize, setPageSize } = useListSearchParams(25);
+  const { data, isLoading, error } = useGetUsersQuery({ page, pageSize });
 
-  const rows = (data ?? []).map((u) => (
+  const total = data?.total ?? 0;
+  const { totalPages, rangeStart, rangeEnd, effectivePage } = paginationFromTotal(
+    total,
+    page,
+    pageSize,
+  );
+
+  useEffect(() => {
+    if (page !== effectivePage) {
+      setPage(effectivePage);
+    }
+  }, [page, effectivePage, setPage]);
+
+  const rows = (data?.items ?? []).map((u) => (
     <Table.Tr key={u.id}>
       <Table.Td>
         <Text size="sm" ff="monospace">
@@ -39,18 +57,32 @@ export function UsersPage() {
       {isLoading ? (
         <Loader />
       ) : (
-        <Table striped highlightOnHover withTableBorder>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t('users.colTelegramId')}</Table.Th>
-              <Table.Th>{t('users.colUsername')}</Table.Th>
-              <Table.Th>{t('users.colName')}</Table.Th>
-              <Table.Th>{t('users.colPhone')}</Table.Th>
-              <Table.Th>{t('users.colJoined')}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+        <>
+          <Table striped highlightOnHover withTableBorder>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>{t('users.colTelegramId')}</Table.Th>
+                <Table.Th>{t('users.colUsername')}</Table.Th>
+                <Table.Th>{t('users.colName')}</Table.Th>
+                <Table.Th>{t('users.colPhone')}</Table.Th>
+                <Table.Th>{t('users.colJoined')}</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+          {total > 0 ? (
+            <TablePaginationFooter
+              page={effectivePage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              pageSize={pageSize}
+              onPageSizeChange={setPageSize}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              totalItems={total}
+            />
+          ) : null}
+        </>
       )}
     </Stack>
   );

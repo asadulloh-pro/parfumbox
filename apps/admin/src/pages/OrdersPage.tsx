@@ -13,13 +13,19 @@ import {
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   type OrderStatus,
+  useGetAdminOrderQuery,
   useGetOrdersQuery,
   useUpdateOrderStatusMutation,
 } from '../app/parfumApi';
+import { formatPrice } from '../shared/lib/money';
+import { useListSearchParams } from '../shared/lib/useListSearchParams';
+import { paginationFromTotal } from '../shared/lib/serverPagination';
+import { useTablePagination } from '../shared/lib/useTablePagination';
+import { TablePaginationFooter } from '../shared/ui/TablePaginationFooter';
 
 const STATUSES: OrderStatus[] = [
   'PENDING',
@@ -31,8 +37,13 @@ const STATUSES: OrderStatus[] = [
 
 export function OrdersPage() {
   const { t } = useTranslation();
-  const { data, isLoading, error } = useGetOrdersQuery();
   const [updateStatus, { isLoading: updating }] = useUpdateOrderStatusMutation();
+  const {
+    page: ordersPage,
+    setPage: setOrdersPage,
+    pageSize: ordersPageSize,
+    setPageSize: setOrdersPageSize,
+  } = useListSearchParams(25);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | null>(null);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
@@ -40,33 +51,51 @@ export function OrdersPage() {
     null,
   ]);
 
-  const filteredOrders = useMemo(() => {
-    const list = data ?? [];
-    let out = list;
-    if (statusFilter) {
-      out = out.filter((o) => o.status === statusFilter);
-    }
-    const from = dateRange[0];
-    const to = dateRange[1];
-    if (from && to) {
-      const startMs = dayjs(from).startOf('day').valueOf();
-      const endMs = dayjs(to).endOf('day').valueOf();
-      out = out.filter((o) => {
-        const tMs = dayjs(o.createdAt).valueOf();
-        return tMs >= startMs && tMs <= endMs;
-      });
-    }
-    return out;
-  }, [data, statusFilter, dateRange]);
+  const ordersQuery = useMemo(
+    () => ({
+      page: ordersPage,
+      pageSize: ordersPageSize,
+      ...(statusFilter ? { status: statusFilter } : {}),
+      ...(dateRange[0] && dateRange[1]
+        ? {
+            createdFrom: dayjs(dateRange[0]).format('YYYY-MM-DD'),
+            createdTo: dayjs(dateRange[1]).format('YYYY-MM-DD'),
+          }
+        : {}),
+    }),
+    [ordersPage, ordersPageSize, statusFilter, dateRange],
+  );
 
-  const selectedOrder = selectedOrderId
-    ? (data ?? []).find((order) => order.id === selectedOrderId) ?? null
-    : null;
+  const { data: ordersData, isLoading, error } = useGetOrdersQuery(ordersQuery);
+  const { data: orderDetail, isFetching: orderDetailLoading } = useGetAdminOrderQuery(
+    selectedOrderId!,
+    { skip: !selectedOrderId },
+  );
 
-  const formatCurrency = (cents: number) => (cents / 100).toFixed(2);
+
+  const hasFilters = Boolean(
+    statusFilter || (dateRange[0] && dateRange[1]),
+  );
+  const ordersTotal = ordersData?.total ?? 0;
+  const {
+    totalPages: ordersTotalPages,
+    rangeStart: ordersRangeStart,
+    rangeEnd: ordersRangeEnd,
+    effectivePage: ordersEffectivePage,
+  } = paginationFromTotal(ordersTotal, ordersPage, ordersPageSize);
+  const ordersPageItems = ordersData?.items ?? [];
+
+  useEffect(() => {
+    if (ordersPage !== ordersEffectivePage) {
+      setOrdersPage(ordersEffectivePage);
+    }
+  }, [ordersPage, ordersEffectivePage, setOrdersPage]);
+
+
+
   const renderValue = (value: string | null) => value ?? '-';
 
-  const rows = filteredOrders.map((o) => (
+  const rows = useMemo(() => ordersPageItems.map((o) => (
     <Table.Tr key={o.id}>
       <Table.Td>
         <Text size="xs" ff="monospace">
@@ -77,7 +106,7 @@ export function OrdersPage() {
         <Text size="sm">{o.user.telegramId}</Text>
       </Table.Td>
       <Table.Td>{o.items.length}</Table.Td>
-      <Table.Td>{formatCurrency(o.totalCents)}</Table.Td>
+      <Table.Td>{formatPrice(o.totalUzs)}</Table.Td>
       <Table.Td>
         <Select
           size="xs"
@@ -102,7 +131,7 @@ export function OrdersPage() {
         </Button>
       </Table.Td>
     </Table.Tr>
-  ));
+  )), [ordersPageItems, updating, t]);
 
   return (
     <Stack gap="md">
@@ -121,7 +150,10 @@ export function OrdersPage() {
             label: t(`orderStatus.${s}` as const),
           }))}
           value={statusFilter}
-          onChange={(v) => setStatusFilter((v ?? null) as OrderStatus | null)}
+          onChange={(v) => {
+            setStatusFilter((v ?? null) as OrderStatus | null);
+            setOrdersPage(1);
+          }}
           w={{ base: '100%', sm: 220 }}
         />
         <DatePickerInput
@@ -129,20 +161,14 @@ export function OrdersPage() {
           label={t('orders.filterDateRange')}
           placeholder={t('orders.pickDates')}
           value={dateRange}
-          onChange={setDateRange}
+          onChange={(v) => {
+            setDateRange(v);
+            setOrdersPage(1);
+          }}
           clearable
           w={{ base: '100%', sm: 320 }}
         />
       </Group>
-
-      {(data?.length ?? 0) > 0 ? (
-        <Text size="xs" c="dimmed">
-          {t('orders.showingCount', {
-            shown: filteredOrders.length,
-            total: data?.length ?? 0,
-          })}
-        </Text>
-      ) : null}
 
       {error ? (
         <Alert color="red" title={t('orders.loadErrorTitle')}>
@@ -152,10 +178,14 @@ export function OrdersPage() {
 
       {isLoading ? (
         <Loader />
-      ) : !filteredOrders.length && (data?.length ?? 0) > 0 ? (
+      ) : !ordersTotal && hasFilters ? (
         <Alert color="gray" title={t('orders.noMatchesTitle')}>
           {t('orders.noMatchesBody')}
         </Alert>
+      ) : !ordersTotal && !hasFilters ? (
+        <Text size="sm" c="dimmed">
+          {t('orders.noneYet')}
+        </Text>
       ) : (
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>
@@ -173,41 +203,56 @@ export function OrdersPage() {
         </Table>
       )}
 
+      {!isLoading && ordersTotal > 0 ? (
+        <TablePaginationFooter
+          page={ordersEffectivePage}
+          totalPages={ordersTotalPages}
+          onPageChange={setOrdersPage}
+          pageSize={ordersPageSize}
+          onPageSizeChange={setOrdersPageSize}
+          rangeStart={ordersRangeStart}
+          rangeEnd={ordersRangeEnd}
+          totalItems={ordersTotal}
+        />
+      ) : null}
+
       <Modal
-        opened={Boolean(selectedOrder)}
+        opened={Boolean(selectedOrderId)}
         onClose={() => setSelectedOrderId(null)}
         title={t('orders.modalTitle')}
         size="lg"
       >
-        {selectedOrder ? (
+        {selectedOrderId && orderDetailLoading ? (
+          <Loader />
+        ) : orderDetail ? (
           <Stack gap="sm">
             <Title order={5}>{t('orders.sectionDetails')}</Title>
             <Text size="sm">
-              {t('orders.id')}: {selectedOrder.id}
+              {t('orders.id')}: {orderDetail.id}
             </Text>
             <Text size="sm">
               {t('orders.created')}:{' '}
-              {dayjs(selectedOrder.createdAt).format('DD-MMMM-YYYY HH:mm')}
+              {dayjs(orderDetail.createdAt).format('DD-MMMM-YYYY HH:mm')}
             </Text>
             <Text size="sm">
-              {t('orders.status')}: {t(`orderStatus.${selectedOrder.status}` as const)}
+              {t('orders.status')}: {t(`orderStatus.${orderDetail.status}` as const)}
             </Text>
             <Text size="sm">
-              {t('orders.subtotal')}: {formatCurrency(selectedOrder.subtotalCents)}
+              {t('orders.subtotal')}: {formatPrice(orderDetail.subtotalUzs)}
             </Text>
             <Text size="sm">
-              {t('orders.total')}: {formatCurrency(selectedOrder.totalCents)}
+              {t('orders.total')}: {formatPrice(orderDetail.totalUzs)}
             </Text>
             <Text size="sm">
               {t('orders.deliveryFirstName')}:{' '}
-              {renderValue(selectedOrder.deliveryFirstName)}
+              {renderValue(orderDetail.deliveryFirstName)}
             </Text>
             <Text size="sm">
               {t('orders.deliveryLastName')}:{' '}
-              {renderValue(selectedOrder.deliveryLastName)}
+              {renderValue(orderDetail.deliveryLastName)}
             </Text>
             <Text size="sm">
-              {t('orders.deliveryPhone')}: {renderValue(selectedOrder.deliveryPhone)}
+              {t('orders.deliveryPhone')}: {renderValue(orderDetail.deliveryPhone)}
             </Text>
 
             <Divider />
@@ -223,39 +268,46 @@ export function OrdersPage() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {selectedOrder.items.map((item) => (
+                {orderDetail?.items.map((item) => (
                   <Table.Tr key={item.id}>
                     <Table.Td>{item.titleSnapshot}</Table.Td>
                     <Table.Td>{item.quantity}</Table.Td>
-                    <Table.Td>{formatCurrency(item.unitPriceCents)}</Table.Td>
+                    <Table.Td>{formatPrice(item.unitPriceUzs)}</Table.Td>
                     <Table.Td>
-                      {formatCurrency(item.unitPriceCents * item.quantity)}
+                      {formatPrice(item.unitPriceUzs * item.quantity)}
                     </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
             </Table>
+           
 
             <Divider />
 
             <Title order={5}>{t('orders.sectionUser')}</Title>
             <Text size="sm">
-              {t('orders.telegramId')}: {selectedOrder.user.telegramId}
+              {t('orders.telegramId')}: {orderDetail.user.telegramId}
             </Text>
             <Text size="sm">
-              {t('orders.firstName')}: {renderValue(selectedOrder.user.firstName)}
+              {t('orders.firstName')}: {renderValue(orderDetail.user.firstName)}
             </Text>
             <Text size="sm">
-              {t('orders.lastName')}: {renderValue(selectedOrder.user.lastName)}
+              {t('orders.lastName')}: {renderValue(orderDetail.user.lastName)}
             </Text>
             <Text size="sm">
-              {t('orders.phone')}: {renderValue(selectedOrder.user.phone)}
+              {t('orders.phone')}: {renderValue(orderDetail.user.phone)}
             </Text>
             <Text size="sm">
-
-               {t('orders.birthDate')}: {selectedOrder?.user?.birthDate ? dayjs(selectedOrder.user.birthDate).format('DD-MMMM-YYYY') : '-'}
+              {t('orders.birthDate')}:{' '}
+              {orderDetail.user.birthDate
+                ? dayjs(orderDetail.user.birthDate).format('DD-MMMM-YYYY')
+                : '-'}
             </Text>
           </Stack>
+        ) : selectedOrderId ? (
+          <Text size="sm" c="dimmed">
+            {t('orders.loadErrorBody')}
+          </Text>
         ) : null}
       </Modal>
     </Stack>

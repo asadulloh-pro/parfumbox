@@ -4,6 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AdminStatsModule } from "./admin-stats/admin-stats.module";
 import { AdminUsersModule } from "./admin-users/admin-users.module";
 import { AdminAuthModule } from "./admin-auth/admin-auth.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 import { AuthModule } from "./auth/auth.module";
 import { HealthModule } from "./health/health.module";
 import { OrdersModule } from "./orders/orders.module";
@@ -22,6 +23,7 @@ import { UsersModule } from "./users/users.module";
     PrismaModule,
     AuthModule,
     AdminAuthModule,
+    NotificationsModule,
     AdminUsersModule,
     AdminStatsModule,
     UsersModule,

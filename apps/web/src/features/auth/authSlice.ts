@@ -8,6 +8,7 @@ export type TelegramAuthUser = {
   telegramUsername: string | null;
   firstName: string | null;
   lastName: string | null;
+  locale?: 'ru' | 'uz';
 };
 
 export type AuthState = {

@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, NotFoundException, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import type { Order, OrderItem } from "@prisma/client";
+import type { Order } from "@prisma/client";
 import { JwtAdminGuard } from "../admin-auth/guards/jwt-admin.guard";
+import type { PaginatedResult } from "../common/pagination";
+import { AdminOrdersQueryDto } from "./dto/admin-orders-query.dto";
 import { UpdateOrderStatusDto } from "./dto/update-order-status.dto";
-import { OrdersService } from "./orders.service";
+import { type AdminOrderRow, OrdersService } from "./orders.service";
 
 @ApiTags("admin-orders")
 @ApiBearerAuth("admin-jwt")
@@ -13,22 +15,21 @@ export class AdminOrdersController {
   constructor(private readonly orders: OrdersService) {}
 
   @Get()
-  @ApiOperation({ summary: "List all orders (admin)" })
-  @ApiOkResponse({ description: "Orders with items and user profile data" })
-  async list(): Promise<
-    (Order & {
-      items: OrderItem[];
-      user: {
-        id: string;
-        telegramId: string;
-        firstName: string | null;
-        lastName: string | null;
-        phone: string | null;
-        birthDate: Date | null;
-      };
-    })[]
-  > {
-    return this.orders.listAll();
+  @ApiOperation({ summary: "List all orders (admin, paginated, filterable)" })
+  @ApiOkResponse({ description: "Paginated orders with items and user profile data" })
+  async list(@Query() query: AdminOrdersQueryDto): Promise<PaginatedResult<AdminOrderRow>> {
+    return this.orders.listAllPaginated(query);
+  }
+
+  @Get(":id")
+  @ApiOperation({ summary: "Get one order (admin)" })
+  @ApiOkResponse({ description: "Order with items and user" })
+  async getOne(@Param("id") id: string): Promise<AdminOrderRow> {
+    const row = await this.orders.getByIdForAdmin(id);
+    if (!row) {
+      throw new NotFoundException("Order not found");
+    }
+    return row;
   }
 
   @Patch(":id/status")

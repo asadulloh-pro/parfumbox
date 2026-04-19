@@ -1,5 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsInt, IsOptional, IsString, MaxLength, Min, MinLength } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  MinLength,
+  ValidateNested,
+} from "class-validator";
+import { ProductSizeLineDto } from "./product-size-line.dto";
 
 export class CreateProductDto {
   @ApiProperty()
@@ -14,10 +26,23 @@ export class CreateProductDto {
   @MaxLength(10_000)
   description?: string;
 
-  @ApiProperty({ description: "Price in minor units (e.g. cents)" })
+  @ApiProperty({
+    description: "Base price in UZS (integer). If `sizes` is set, server sets catalog `priceUzs` from 10 g if present, else minimum size price.",
+  })
   @IsInt()
   @Min(0)
-  priceCents!: number;
+  priceUzs!: number;
+
+  @ApiPropertyOptional({
+    type: [ProductSizeLineDto],
+    description: "Lines referencing ProductSizePreset ids with per-product prices.",
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => ProductSizeLineDto)
+  sizes?: ProductSizeLineDto[];
 
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()

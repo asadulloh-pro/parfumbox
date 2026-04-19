@@ -78,7 +78,7 @@ export function OrderDetailPage() {
         {t(`orderStatus.${order.status}`)}
       </h1>
       <p style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>
-        {formatPrice(order.totalCents)}
+        {formatPrice(order.totalUzs)}
       </p>
       {(order.deliveryPhone ||
         order.deliveryFirstName ||
@@ -101,7 +101,7 @@ export function OrderDetailPage() {
           {order.items.map((it) => (
             <li key={it.id} style={{ marginBottom: 8 }}>
               {it.titleSnapshot} × {it.quantity} —{' '}
-              {formatPrice(it.unitPriceCents * it.quantity)}
+              {formatPrice(it.unitPriceUzs * it.quantity)}
             </li>
           ))}
         </ul>

@@ -1,10 +1,9 @@
 import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
-import type { Product } from "@prisma/client";
 import { JwtAdminGuard } from "../admin-auth/guards/jwt-admin.guard";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
-import { ProductsService } from "./products.service";
+import { ProductsService, type PublicProduct } from "./products.service";
 
 @ApiTags("admin-products")
 @ApiBearerAuth("admin-jwt")
@@ -16,14 +15,14 @@ export class AdminProductsController {
   @Post()
   @ApiOperation({ summary: "Create product" })
   @ApiOkResponse({ description: "Created product" })
-  async create(@Body() body: CreateProductDto): Promise<Product> {
+  async create(@Body() body: CreateProductDto): Promise<PublicProduct> {
     return this.products.create(body);
   }
 
   @Patch(":id")
   @ApiOperation({ summary: "Update product" })
   @ApiOkResponse({ description: "Updated product" })
-  async update(@Param("id") id: string, @Body() body: UpdateProductDto): Promise<Product> {
+  async update(@Param("id") id: string, @Body() body: UpdateProductDto): Promise<PublicProduct> {
     return this.products.update(id, body);
   }
 

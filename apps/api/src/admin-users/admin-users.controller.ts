@@ -1,7 +1,9 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { User } from "@prisma/client";
 import { JwtAdminGuard } from "../admin-auth/guards/jwt-admin.guard";
+import { PaginationQueryDto } from "../common/dto/pagination-query.dto";
+import type { PaginatedResult } from "../common/pagination";
 import { AdminUsersService } from "./admin-users.service";
 
 @ApiTags("admin-users")
@@ -12,9 +14,9 @@ export class AdminUsersController {
   constructor(private readonly adminUsers: AdminUsersService) {}
 
   @Get()
-  @ApiOperation({ summary: "List Telegram users (admin)" })
-  @ApiOkResponse({ description: "Users" })
-  async list(): Promise<User[]> {
-    return this.adminUsers.findAll();
+  @ApiOperation({ summary: "List Telegram users (admin, paginated)" })
+  @ApiOkResponse({ description: "Paginated users" })
+  async list(@Query() query: PaginationQueryDto): Promise<PaginatedResult<User>> {
+    return this.adminUsers.findAllPaginated(query);
   }
 }

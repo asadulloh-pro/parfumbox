@@ -3,6 +3,7 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import type { User } from "@prisma/client";
+import { normalizeUserLocale } from "../common/locale.util";
 import { PrismaService } from "../prisma/prisma.service";
 
 type TelegramWebAppUser = {
@@ -62,6 +63,7 @@ export class AuthService {
     }
 
     const telegramId = String(tgUser.id);
+    const locale = normalizeUserLocale(tgUser.language_code);
     const user = await this.prisma.user.upsert({
       where: { telegramId },
       create: {
@@ -69,11 +71,13 @@ export class AuthService {
         telegramUsername: tgUser.username ?? null,
         firstName: tgUser.first_name ?? null,
         lastName: tgUser.last_name ?? null,
+        locale,
       },
       update: {
         telegramUsername: tgUser.username ?? null,
         firstName: tgUser.first_name ?? null,
         lastName: tgUser.last_name ?? null,
+        locale,
       },
     });
 

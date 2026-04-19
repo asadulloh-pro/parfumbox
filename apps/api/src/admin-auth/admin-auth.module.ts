@@ -22,6 +22,6 @@ import { JwtAdminStrategy } from "./strategies/jwt-admin.strategy";
   ],
   controllers: [AdminAuthController],
   providers: [AdminAuthService, JwtAdminStrategy],
-  exports: [AdminAuthService],
+  exports: [AdminAuthService, JwtModule],
 })
 export class AdminAuthModule {}

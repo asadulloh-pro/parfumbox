@@ -1,11 +1,15 @@
 import { Spinner } from '@telegram-apps/telegram-ui';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import type { Order } from '../../../app/parfumApi';
 import { useListOrdersQuery } from '../../../app/parfumApi';
 import { useAppSelector } from '../../../app/hooks';
 import { intlLocaleForLanguage } from '../../../i18n';
 import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
 import { formatPrice } from '../../../shared/lib/money';
+
+const PAGE_SIZE = 15;
 
 function formatWhen(iso: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, {
@@ -18,9 +22,51 @@ export function OrdersPage() {
   const { t, i18n } = useTranslation();
   const locale = intlLocaleForLanguage(i18n.language);
   const token = useAppSelector((s) => s.auth.accessToken);
-  const { data: orders, isLoading, isError } = useListOrdersQuery(undefined, {
-    skip: !token,
-  });
+  const [page, setPage] = useState(1);
+  const [items, setItems] = useState<Order[]>([]);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const { data, isLoading, isError, isFetching } = useListOrdersQuery(
+    { page, pageSize: PAGE_SIZE },
+    { skip: !token },
+  );
+
+  useEffect(() => {
+    if (!token) {
+      setItems([]);
+      setPage(1);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (!data) return;
+    const pageItems = data.items ?? [];
+    setItems((prev) =>
+      page === 1 ? pageItems : [...(prev ?? []), ...pageItems],
+    );
+  }, [data, page]);
+
+  const orderItems = items ?? [];
+  const hasMore = (data?.total ?? 0) > orderItems.length;
+  const showInitialLoader = Boolean(token) && isLoading && orderItems.length === 0;
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || isFetching) return;
+    setPage((p) => p + 1);
+  }, [hasMore, isFetching]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const ob = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) loadMore();
+      },
+      { rootMargin: '280px' },
+    );
+    ob.observe(el);
+    return () => ob.disconnect();
+  }, [loadMore]);
 
   if (!token) {
     return (
@@ -34,7 +80,7 @@ export function OrdersPage() {
     );
   }
 
-  if (isLoading) {
+  if (showInitialLoader) {
     return (
       <div className="tma-page tma-page--centered">
         <Spinner size="l" />
@@ -42,7 +88,7 @@ export function OrdersPage() {
     );
   }
 
-  if (isError || !orders) {
+  if (isError || !data) {
     return (
       <div className="tma-page">
         <div style={{ marginBottom: 12 }}>
@@ -54,7 +100,7 @@ export function OrdersPage() {
     );
   }
 
-  if (orders.length === 0) {
+  if (orderItems.length === 0) {
     return (
       <div className="tma-page">
         <div style={{ marginBottom: 12 }}>
@@ -73,7 +119,7 @@ export function OrdersPage() {
       </div>
       <h1 className="page-title">{t('orders.title')}</h1>
       <ul className="orders-list">
-        {orders.map((o) => (
+        {orderItems.map((o) => (
           <li key={o.id}>
             <Link to={`/orders/${o.id}`} className="orders-row">
               <div className="orders-row__meta">
@@ -83,12 +129,24 @@ export function OrdersPage() {
                 </span>
               </div>
               <div style={{ marginTop: 8, fontWeight: 600 }}>
-                {formatPrice(o.totalCents)}
+                {formatPrice(o.totalUzs)}
               </div>
             </Link>
           </li>
         ))}
       </ul>
+      {hasMore ? (
+        <div
+          ref={sentinelRef}
+          style={{ minHeight: 1, padding: '8px 0' }}
+          aria-hidden
+        />
+      ) : null}
+      {isFetching && orderItems.length > 0 ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
+          <Spinner size="m" />
+        </div>
+      ) : null}
     </div>
   );
 }

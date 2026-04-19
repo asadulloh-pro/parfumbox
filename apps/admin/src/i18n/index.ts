@@ -54,4 +54,8 @@ i18n.on('languageChanged', (lng) => {
   }
 });
 
+export function intlLocaleForLanguage(lng: string): string {
+  return lng === 'ru' ? 'ru-RU' : 'uz-UZ';
+}
+
 export default i18n;

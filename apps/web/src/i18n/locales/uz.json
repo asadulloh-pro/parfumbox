@@ -13,7 +13,9 @@
   },
   "catalog": {
     "loadErrorTitle": "Mahsulotlarni yuklab bo‘lmadi",
-    "loadError": "Mahsulotlarni yuklab bo‘lmadi ({{url}}). API 3000-portda ishlayotganini va Vite dev serverni qayta ishga tushirganingizni tekshiring. Production uchun VITE_API_BASE_URL ni API manziliga qo‘ying."
+    "loadError": "Mahsulotlarni yuklab bo‘lmadi ({{url}}). API 3000-portda ishlayotganini va Vite dev serverni qayta ishga tushirganingizni tekshiring. Production uchun VITE_API_BASE_URL ni API manziliga qo‘ying.",
+    "from": "dan",
+    "empty": "Katalogda hali mahsulot yo‘q."
   },
   "cart": {
     "title": "Savat",
@@ -47,7 +49,18 @@
     "notFoundBody": "Bu mahsulot mavjud emas. Katalogga qayting.",
     "backExplore": "Katalogga qaytish",
     "inStock": "Omborda: {{count}}",
-    "addToCart": "Savatga qo‘shish"
+    "outOfStock": "Mavjud emas (0 dona)",
+    "unavailable": "Mavjud emas",
+    "addToCart": "Savatga qo‘shish",
+    "sizeLabel": "Hajm",
+    "sizeRowMeta": "{{price}} · {{grams}} g",
+    "selectedPriceTitle": "Tanlangan hajm narxi",
+    "basePriceTitle": "Narxi",
+    "stockSectionTitle": "Mavjudligi",
+    "descriptionTitle": "Tavsif",
+    "savingsPerGram": "Har grami uchun {{amount}} tejaysiz (kichik hajmdagi narxdan).",
+    "savingsTotal": "Jami {{amount}} tejaysiz.",
+    "savingsLabel": "Hajm bo‘yicha tejamkorlik"
   },
   "orders": {
     "title": "Buyurtmalar",

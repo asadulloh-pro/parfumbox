@@ -14,6 +14,8 @@ model User {
   telegramUsername   String?
   firstName          String?
   lastName           String?
+  /// Mini-app / Telegram UI language: ru | uz (used for bot messages).
+  locale             String    @default("uz")
   phone              String?
   birthDate          DateTime? @db.Date
   createdAt          DateTime  @default(now())
@@ -29,13 +31,58 @@ model AdminUser {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  notificationReads AdminNotificationRead[]
+}
+
+enum AdminNotificationKind {
+  ORDER_CREATED
+  ORDER_UPDATED
+}
+
+model AdminNotification {
+  id        String                @id @default(cuid())
+  kind      AdminNotificationKind
+  orderId   String
+  createdAt DateTime              @default(now())
+
+  reads AdminNotificationRead[]
+
+  @@index([createdAt])
+}
+
+model AdminNotificationRead {
+  id             String   @id @default(cuid())
+  notificationId String
+  adminUserId    String
+  readAt         DateTime @default(now())
+
+  notification AdminNotification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  admin        AdminUser           @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, adminUserId])
+  @@index([adminUserId])
+}
+
+/// Reusable volume options (hajm). Prices are set per product, not here.
+model ProductSizePreset {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  label     String
+  grams     Int
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Product {
   id          String   @id @default(cuid())
   title       String
   description String   @default("")
-  priceCents  Int
+  /// Catalog listing: 10 g line if present, else smallest price among sizes.
+  priceUzs    Int
+  /// [{ "presetId": "<cuid>", "priceUzs": <integer> }, ...]
+  sizes       Json?
   images      String[] @default([])
   stock       Int?
   createdAt   DateTime @default(now())
@@ -56,8 +103,8 @@ model Order {
   id                 String      @id @default(cuid())
   userId             String
   status             OrderStatus @default(PENDING)
-  subtotalCents      Int
-  totalCents         Int
+  subtotalUzs        Int
+  totalUzs           Int
   deliveryPhone      String?
   deliveryFirstName  String?
   deliveryLastName   String?
@@ -69,12 +116,15 @@ model Order {
 }
 
 model OrderItem {
-  id             String @id @default(cuid())
-  orderId        String
-  productId      String?
-  quantity       Int
-  unitPriceCents Int
-  titleSnapshot  String
+  id                String @id @default(cuid())
+  orderId           String
+  productId         String?
+  quantity          Int
+  unitPriceUzs      Int
+  titleSnapshot     String
+  sizeId            String?
+  sizeLabelSnapshot String?
+  gramsSnapshot     Int?
 
   order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)

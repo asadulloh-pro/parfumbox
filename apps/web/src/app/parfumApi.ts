@@ -6,6 +6,7 @@ import {
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { logout } from '../features/auth/authSlice';
 import type { TelegramAuthUser } from '../features/auth/authSlice';
+import { normalizePaginated } from './paginationNormalize';
 
 /**
  * API base URL. In dev, defaults to a same-origin path proxied by Vite to localhost:3000
@@ -46,11 +47,20 @@ const baseQueryWithAuth: BaseQueryFn = async (args, api, extraOptions) => {
   return result;
 };
 
+export type ProductSizeOption = {
+  id: string;
+  presetId: string;
+  label: string;
+  grams: number;
+  priceUzs: number;
+};
+
 export type Product = {
   id: string;
   title: string;
   description: string;
-  priceCents: number;
+  priceUzs: number;
+  sizes: ProductSizeOption[] | null;
   images: string[];
   stock: number | null;
   createdAt: string;
@@ -69,16 +79,19 @@ export type OrderItem = {
   orderId: string;
   productId: string | null;
   quantity: number;
-  unitPriceCents: number;
+  unitPriceUzs: number;
   titleSnapshot: string;
+  sizeId: string | null;
+  sizeLabelSnapshot: string | null;
+  gramsSnapshot: number | null;
 };
 
 export type Order = {
   id: string;
   userId: string;
   status: OrderStatus;
-  subtotalCents: number;
-  totalCents: number;
+  subtotalUzs: number;
+  totalUzs: number;
   deliveryPhone: string | null;
   deliveryFirstName: string | null;
   deliveryLastName: string | null;
@@ -93,10 +106,18 @@ export type UserProfile = {
   telegramUsername: string | null;
   firstName: string | null;
   lastName: string | null;
+  locale: 'ru' | 'uz';
   phone: string | null;
   birthDate: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type PaginatedResult<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
 };
 
 export type TelegramAuthResponse = {
@@ -120,12 +141,23 @@ export const parfumApi = createApi({
         body,
       }),
     }),
-    getProducts: build.query<Product[], void>({
-      query: () => '/products',
+    getProducts: build.query<
+      PaginatedResult<Product>,
+      { page: number; pageSize: number }
+    >({
+      query: ({ page, pageSize }) => ({
+        url: '/products',
+        params: { page, pageSize },
+      }),
+      transformResponse: (response: unknown, _m, arg) =>
+        normalizePaginated<Product>(response, {
+          page: arg.page,
+          pageSize: arg.pageSize,
+        }),
       providesTags: (result) =>
-        result
+        result?.items?.length
           ? [
-              ...result.map((p) => ({ type: 'Product' as const, id: p.id })),
+              ...result.items.map((p) => ({ type: 'Product' as const, id: p.id })),
               { type: 'Product', id: 'LIST' },
             ]
           : [{ type: 'Product', id: 'LIST' }],
@@ -145,6 +177,7 @@ export const parfumApi = createApi({
         firstName: string;
         lastName: string;
         birthDate: string;
+        locale: 'ru' | 'uz';
       }>
     >({
       query: (body) => ({
@@ -154,12 +187,23 @@ export const parfumApi = createApi({
       }),
       invalidatesTags: [{ type: 'UserProfile', id: 'ME' }],
     }),
-    listOrders: build.query<Order[], void>({
-      query: () => '/orders',
+    listOrders: build.query<
+      PaginatedResult<Order>,
+      { page: number; pageSize: number }
+    >({
+      query: ({ page, pageSize }) => ({
+        url: '/orders',
+        params: { page, pageSize },
+      }),
+      transformResponse: (response: unknown, _m, arg) =>
+        normalizePaginated<Order>(response, {
+          page: arg.page,
+          pageSize: arg.pageSize,
+        }),
       providesTags: (result) =>
-        result
+        result?.items?.length
           ? [
-              ...result.map((o) => ({ type: 'Order' as const, id: o.id })),
+              ...result.items.map((o) => ({ type: 'Order' as const, id: o.id })),
               { type: 'Order', id: 'LIST' },
             ]
           : [{ type: 'Order', id: 'LIST' }],
@@ -171,7 +215,11 @@ export const parfumApi = createApi({
     createOrder: build.mutation<
       Order,
       {
-        items: Array<{ productId: string; quantity: number }>;
+        items: Array<{
+          productId: string;
+          quantity: number;
+          sizeId?: string;
+        }>;
         deliveryPhone?: string;
         deliveryFirstName?: string;
         deliveryLastName?: string;
@@ -179,7 +227,11 @@ export const parfumApi = createApi({
       }
     >({
       query: (body) => ({ url: '/orders', method: 'POST', body }),
-      invalidatesTags: [{ type: 'Order', id: 'LIST' }, 'UserProfile'],
+      invalidatesTags: [
+        { type: 'Order', id: 'LIST' },
+        'UserProfile',
+        { type: 'Product', id: 'LIST' },
+      ],
     }),
   }),
 });

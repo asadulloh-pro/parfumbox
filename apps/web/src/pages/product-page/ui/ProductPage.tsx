@@ -1,10 +1,23 @@
-import { Button, Spinner } from '@telegram-apps/telegram-ui';
+import {
+  Button,
+  Cell,
+  List,
+  Section,
+  Spinner,
+  Title,
+} from '@telegram-apps/telegram-ui';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGetProductQuery } from '../../../app/parfumApi';
 import { useAppDispatch } from '../../../app/hooks';
 import { addOrMergeLine } from '../../../features/cart/cartSlice';
 import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
+import {
+  DEFAULT_CART_SIZE_ID,
+  type ProductSizeOption,
+  sizeSavingsVsSmallest,
+} from '../../../shared/lib/productSizes';
 import { formatPrice } from '../../../shared/lib/money';
 
 function productImageUrl(id: string, images: string[]): string {
@@ -12,6 +25,10 @@ function productImageUrl(id: string, images: string[]): string {
     return images[0];
   }
   return `https://picsum.photos/seed/pb-${id}/800/800`;
+}
+
+function sortSizes(sizes: ProductSizeOption[]): ProductSizeOption[] {
+  return [...sizes].sort((a, b) => a.grams - b.grams);
 }
 
 export function ProductPage() {
@@ -22,6 +39,21 @@ export function ProductPage() {
   const { data: product, isLoading, isError } = useGetProductQuery(id ?? '', {
     skip: !id,
   });
+
+  const sizeOptions = useMemo(
+    () => (product?.sizes?.length ? sortSizes(product.sizes) : []),
+    [product?.sizes],
+  );
+
+  const [selectedSizeId, setSelectedSizeId] = useState<string>('');
+
+  useEffect(() => {
+    if (sizeOptions.length > 0) {
+      setSelectedSizeId(sizeOptions[0]!.id);
+    } else {
+      setSelectedSizeId('');
+    }
+  }, [product?.id, sizeOptions]);
 
   if (isLoading) {
     return (
@@ -52,10 +84,29 @@ export function ProductPage() {
     );
   }
 
-  const stockLabel =
-    product.stock === null || product.stock === undefined
-      ? null
-      : t('product.inStock', { count: product.stock });
+  const hasSizes = sizeOptions.length > 0;
+  const selected = hasSizes
+    ? sizeOptions.find((s) => s.id === selectedSizeId) ?? sizeOptions[0]!
+    : null;
+
+  const displayPriceUzs = hasSizes
+    ? selected!.priceUzs
+    : product.priceUzs;
+
+  const savings =
+    hasSizes && selected
+      ? sizeSavingsVsSmallest(selected, sizeOptions)
+      : null;
+
+  const stockCount = product.stock;
+  const trackedStock = stockCount !== null && stockCount !== undefined;
+  const outOfStock = trackedStock && stockCount <= 0;
+
+  const stockLabel = !trackedStock
+    ? null
+    : outOfStock
+      ? t('product.outOfStock')
+      : t('product.inStock', { count: stockCount });
 
   return (
     <div className="tma-page">
@@ -76,31 +127,98 @@ export function ProductPage() {
           style={{ width: '100%', display: 'block', aspectRatio: '1' }}
         />
       </div>
-      <h1 className="page-title" style={{ marginBottom: 8 }}>
+      <Title weight="1" style={{ marginBottom: 4 }}>
         {product.title}
-      </h1>
-      <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--pb-gold-600)' }}>
-        {formatPrice(product.priceCents)}
-      </p>
-      {stockLabel ? (
-        <p className="page-placeholder" style={{ marginTop: 8 }}>
-          {stockLabel}
-        </p>
-      ) : null}
-      {product.description ? (
-        <p style={{ marginTop: 12, lineHeight: 1.5 }}>{product.description}</p>
-      ) : null}
+      </Title>
+
+      <div className="product-detail-stack">
+        {hasSizes ? (
+          <Section header={t('product.sizeLabel')}>
+            <List>
+              {sizeOptions.map((s) => {
+                const active = s.id === selectedSizeId;
+                return (
+                  <Cell
+                    key={s.id}
+                    interactiveAnimation="background"
+                    onClick={() => setSelectedSizeId(s.id)}
+                    subtitle={t('product.sizeRowMeta', {
+                      price: formatPrice(s.priceUzs),
+                      grams: s.grams,
+                    })}
+                    after={
+                      active ? (
+                        <span style={{ fontWeight: 700, color: 'var(--tgui--link_color, #2481cc)' }}>
+                          ✓
+                        </span>
+                      ) : null
+                    }
+                  >
+                    {s.label}
+                  </Cell>
+                );
+              })}
+            </List>
+          </Section>
+        ) : null}
+
+        <section className="product-detail-price-card" aria-labelledby="product-price-heading">
+          <p id="product-price-heading" className="product-detail-price-card__label">
+            {hasSizes ? t('product.selectedPriceTitle') : t('product.basePriceTitle')}
+          </p>
+          <Title
+            level="2"
+            weight="2"
+            className="product-detail-price-card__amount"
+            style={{ color: 'var(--pb-gold-600)' }}
+          >
+            {formatPrice(displayPriceUzs)}
+          </Title>
+
+          {savings ? (
+            <div className="product-detail-savings">
+              <p className="product-detail-savings__eyebrow">{t('product.savingsLabel')}</p>
+              <ul className="product-detail-savings__list">
+                <li>{t('product.savingsPerGram', { amount: formatPrice(savings.perGramUzs) })}</li>
+                <li>{t('product.savingsTotal', { amount: formatPrice(savings.totalUzs) })}</li>
+              </ul>
+            </div>
+          ) : null}
+        </section>
+
+        {stockLabel ? (
+          <Section header={t('product.stockSectionTitle')}>
+            <List>
+              <Cell>{stockLabel}</Cell>
+            </List>
+          </Section>
+        ) : null}
+
+        {product.description ? (
+          <Section header={t('product.descriptionTitle')}>
+            <div className="product-detail-desc">{product.description}</div>
+          </Section>
+        ) : null}
+      </div>
+
       <Button
         mode="filled"
         size="l"
         stretched
-        style={{ marginTop: 20 }}
+        disabled={outOfStock}
+        style={{ marginTop: 18 }}
         onClick={() => {
+          if (outOfStock) return;
+          if (hasSizes && !selected) return;
+          const sizeId = hasSizes && selected ? selected.id : DEFAULT_CART_SIZE_ID;
+          const sizeLabel = hasSizes && selected ? selected.label : null;
           dispatch(
             addOrMergeLine({
               productId: product.id,
+              sizeId,
               title: product.title,
-              unitPriceCents: product.priceCents,
+              sizeLabel,
+              unitPriceUzs: displayPriceUzs,
               imageUrl: product.images[0] ?? null,
               quantity: 1,
             }),
@@ -108,7 +226,7 @@ export function ProductPage() {
           navigate('/cart');
         }}
       >
-        {t('product.addToCart')}
+        {outOfStock ? t('product.unavailable') : t('product.addToCart')}
       </Button>
     </div>
   );

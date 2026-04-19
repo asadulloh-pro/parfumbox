@@ -22,6 +22,7 @@ export class UsersService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         ...(birthDate !== undefined ? { birthDate } : {}),
+        ...(dto.locale !== undefined ? { locale: dto.locale } : {}),
       },
     });
   }

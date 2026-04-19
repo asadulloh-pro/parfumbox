@@ -16,7 +16,7 @@ export function CartPage() {
   const items = useAppSelector((s) => s.cart.items);
 
   const subtotal = items.reduce(
-    (sum, line) => sum + line.unitPriceCents * line.quantity,
+    (sum, line) => sum + line.unitPriceUzs * line.quantity,
     0,
   );
 
@@ -43,7 +43,7 @@ export function CartPage() {
       <h1 className="page-title">{t('cart.title')}</h1>
       <ul className="cart-list">
         {items.map((line) => (
-          <li key={line.productId} className="cart-line">
+          <li key={line.lineKey} className="cart-line">
             <div className="cart-line__media">
               {line.imageUrl ? (
                 <img src={line.imageUrl} alt="" />
@@ -52,9 +52,12 @@ export function CartPage() {
               )}
             </div>
             <div className="cart-line__body">
-              <span className="cart-line__title">{line.title}</span>
+              <span className="cart-line__title">
+                {line.title}
+                {line.sizeLabel ? ` · ${line.sizeLabel}` : ''}
+              </span>
               <span className="cart-line__price">
-                {formatPrice(line.unitPriceCents * line.quantity)}
+                {formatPrice(line.unitPriceUzs * line.quantity)}
               </span>
               <div className="cart-line__qty">
                 <button
@@ -63,7 +66,7 @@ export function CartPage() {
                   onClick={() =>
                     dispatch(
                       setLineQuantity({
-                        productId: line.productId,
+                        lineKey: line.lineKey,
                         quantity: line.quantity - 1,
                       }),
                     )
@@ -79,7 +82,7 @@ export function CartPage() {
                   onClick={() =>
                     dispatch(
                       setLineQuantity({
-                        productId: line.productId,
+                        lineKey: line.lineKey,
                         quantity: line.quantity + 1,
                       }),
                     )
@@ -91,7 +94,7 @@ export function CartPage() {
                 <button
                   type="button"
                   className="cart-line__remove"
-                  onClick={() => dispatch(removeLine(line.productId))}
+                  onClick={() => dispatch(removeLine(line.lineKey))}
                 >
                   {t('cart.remove')}
                 </button>

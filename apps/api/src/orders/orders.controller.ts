@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { Order, OrderItem, User } from "@prisma/client";
 import { JwtUserGuard } from "../auth/guards/jwt-user.guard";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { PaginationQueryDto } from "../common/dto/pagination-query.dto";
+import type { PaginatedResult } from "../common/pagination";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { OrdersService } from "./orders.service";
 
@@ -21,10 +23,13 @@ export class OrdersController {
   }
 
   @Get()
-  @ApiOperation({ summary: "List current user's orders" })
-  @ApiOkResponse({ description: "Orders with items" })
-  async list(@CurrentUser() user: User): Promise<(Order & { items: OrderItem[] })[]> {
-    return this.orders.listForUser(user.id);
+  @ApiOperation({ summary: "List current user's orders (paginated)" })
+  @ApiOkResponse({ description: "Paginated orders with items" })
+  async list(
+    @CurrentUser() user: User,
+    @Query() query: PaginationQueryDto,
+  ): Promise<PaginatedResult<Order & { items: OrderItem[] }>> {
+    return this.orders.listForUser(user.id, query);
   }
 
   @Get(":id")

@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsDateString, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsDateString, IsIn, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({ maxLength: 32 })
@@ -25,4 +25,9 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsDateString()
   birthDate?: string;
+
+  @ApiPropertyOptional({ enum: ["ru", "uz"], description: "Mini app / bot message language" })
+  @IsOptional()
+  @IsIn(["ru", "uz"])
+  locale?: "ru" | "uz";
 }

@@ -1,5 +1,16 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsInt, IsOptional, IsString, MaxLength, Min, MinLength } from "class-validator";
+import { Type } from "class-transformer";
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  MinLength,
+  ValidateNested,
+} from "class-validator";
+import { ProductSizeLineDto } from "./product-size-line.dto";
 
 export class UpdateProductDto {
   @ApiPropertyOptional()
@@ -19,7 +30,17 @@ export class UpdateProductDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  priceCents?: number;
+  priceUzs?: number;
+
+  @ApiPropertyOptional({
+    type: [ProductSizeLineDto],
+    description: "Replace size lines; send [] to clear and use single priceUzs only.",
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductSizeLineDto)
+  sizes?: ProductSizeLineDto[];
 
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()

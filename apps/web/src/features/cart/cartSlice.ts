@@ -1,16 +1,71 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import {
+  cartLineKey,
+  DEFAULT_CART_SIZE_ID,
+} from '../../shared/lib/productSizes';
 
 const STORAGE_KEY = 'pb_cart';
 
 export type CartLine = {
+  lineKey: string;
   productId: string;
-  quantity: number;
+  sizeId: string;
   title: string;
-  unitPriceCents: number;
+  sizeLabel: string | null;
+  unitPriceUzs: number;
   imageUrl: string | null;
+  quantity: number;
 };
 
 export type CartState = { items: CartLine[] };
+
+function parseCartLine(raw: unknown): CartLine | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  if (
+    typeof o.productId !== 'string' ||
+    typeof o.quantity !== 'number' ||
+    typeof o.title !== 'string'
+  ) {
+    return null;
+  }
+  let unitPriceUzs: number;
+  if (typeof o.unitPriceUzs === 'number') {
+    unitPriceUzs = o.unitPriceUzs;
+  } else if (typeof (o as { unitPriceCents?: number }).unitPriceCents === 'number') {
+    unitPriceUzs = Math.round((o as { unitPriceCents: number }).unitPriceCents / 100);
+  } else {
+    return null;
+  }
+  const sizeId =
+    typeof o.sizeId === 'string' && o.sizeId.length > 0
+      ? o.sizeId
+      : DEFAULT_CART_SIZE_ID;
+  const lineKey =
+    typeof o.lineKey === 'string' && o.lineKey.length > 0
+      ? o.lineKey
+      : cartLineKey(o.productId, sizeId);
+  const sizeLabel =
+    o.sizeLabel === null || o.sizeLabel === undefined
+      ? null
+      : typeof o.sizeLabel === 'string'
+        ? o.sizeLabel
+        : null;
+  const imageUrl =
+    o.imageUrl === null || typeof o.imageUrl === 'string'
+      ? (o.imageUrl as string | null)
+      : null;
+  return {
+    lineKey,
+    productId: o.productId,
+    sizeId,
+    title: o.title,
+    sizeLabel,
+    unitPriceUzs,
+    imageUrl,
+    quantity: o.quantity,
+  };
+}
 
 function loadCart(): CartLine[] {
   try {
@@ -18,15 +73,9 @@ function loadCart(): CartLine[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (line): line is CartLine =>
-        line &&
-        typeof line === 'object' &&
-        typeof (line as CartLine).productId === 'string' &&
-        typeof (line as CartLine).quantity === 'number' &&
-        typeof (line as CartLine).title === 'string' &&
-        typeof (line as CartLine).unitPriceCents === 'number',
-    );
+    return parsed
+      .map(parseCartLine)
+      .filter((line): line is CartLine => line !== null);
   } catch {
     return [];
   }
@@ -46,43 +95,51 @@ export const cartSlice = createSlice({
       state,
       action: PayloadAction<{
         productId: string;
+        sizeId: string;
         title: string;
-        unitPriceCents: number;
+        sizeLabel: string | null;
+        unitPriceUzs: number;
         imageUrl: string | null;
         quantity?: number;
       }>,
     ) {
       const qty = action.payload.quantity ?? 1;
-      const existing = state.items.find(
-        (i) => i.productId === action.payload.productId,
+      const lineKey = cartLineKey(
+        action.payload.productId,
+        action.payload.sizeId,
       );
+      const existing = state.items.find((i) => i.lineKey === lineKey);
       if (existing) {
         existing.quantity += qty;
         existing.title = action.payload.title;
-        existing.unitPriceCents = action.payload.unitPriceCents;
+        existing.sizeLabel = action.payload.sizeLabel;
+        existing.unitPriceUzs = action.payload.unitPriceUzs;
         existing.imageUrl = action.payload.imageUrl;
       } else {
         state.items.push({
+          lineKey,
           productId: action.payload.productId,
-          quantity: qty,
+          sizeId: action.payload.sizeId,
           title: action.payload.title,
-          unitPriceCents: action.payload.unitPriceCents,
+          sizeLabel: action.payload.sizeLabel,
+          unitPriceUzs: action.payload.unitPriceUzs,
           imageUrl: action.payload.imageUrl,
+          quantity: qty,
         });
       }
       saveCart(state.items);
     },
     setLineQuantity(
       state,
-      action: PayloadAction<{ productId: string; quantity: number }>,
+      action: PayloadAction<{ lineKey: string; quantity: number }>,
     ) {
       const line = state.items.find(
-        (i) => i.productId === action.payload.productId,
+        (i) => i.lineKey === action.payload.lineKey,
       );
       if (!line) return;
       if (action.payload.quantity < 1) {
         state.items = state.items.filter(
-          (i) => i.productId !== action.payload.productId,
+          (i) => i.lineKey !== action.payload.lineKey,
         );
       } else {
         line.quantity = action.payload.quantity;
@@ -90,7 +147,7 @@ export const cartSlice = createSlice({
       saveCart(state.items);
     },
     removeLine(state, action: PayloadAction<string>) {
-      state.items = state.items.filter((i) => i.productId !== action.payload);
+      state.items = state.items.filter((i) => i.lineKey !== action.payload);
       saveCart(state.items);
     },
     clearCart(state) {

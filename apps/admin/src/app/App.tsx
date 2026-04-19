@@ -5,6 +5,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { LoginPage } from '../pages/LoginPage';
 import { OrdersPage } from '../pages/OrdersPage';
 import { ProductsPage } from '../pages/ProductsPage';
+import { SizePresetsPage } from '../pages/SizePresetsPage';
 import { UsersPage } from '../pages/UsersPage';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="products" element={<ProductsPage />} />
+          <Route path="size-presets" element={<SizePresetsPage />} />
           <Route path="users" element={<UsersPage />} />
         </Route>
       </Route>

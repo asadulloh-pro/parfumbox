@@ -1,5 +1,7 @@
 import { Button, Input, Spinner } from '@telegram-apps/telegram-ui';
-import { useState } from 'react';
+import { initDataUser, type User as TelegramInitUser } from '@telegram-apps/sdk';
+import { useSignal } from '@telegram-apps/sdk-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -8,15 +10,64 @@ import {
   type UserProfile,
 } from '../../../app/parfumApi';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
+import type { TelegramAuthUser } from '../../../features/auth/authSlice';
 import type { CartLine } from '../../../features/cart/cartSlice';
 import { clearCart } from '../../../features/cart/cartSlice';
 import { useTelegramSession } from '../../../features/session/telegramSessionContext';
 import { LanguageSwitcher } from '../../../features/i18n/LanguageSwitcher';
+import { DEFAULT_CART_SIZE_ID } from '../../../shared/lib/productSizes';
 import { formatPrice } from '../../../shared/lib/money';
 
 function toDateInputValue(iso: string | null | undefined): string {
   if (!iso) return '';
   return iso.slice(0, 10);
+}
+
+/** Prefer saved profile; fill gaps from Telegram Web App initData / auth exchange payload. */
+function mergeCheckoutProfile(
+  me: UserProfile | undefined,
+  authUser: TelegramAuthUser | null,
+  tgUser: TelegramInitUser | undefined,
+): UserProfile | null {
+  const tgFirst =
+    tgUser?.first_name?.trim() ||
+    authUser?.firstName?.trim() ||
+    null;
+  const tgLast =
+    tgUser?.last_name?.trim() ||
+    authUser?.lastName?.trim() ||
+    null;
+  const tgUsername =
+    tgUser?.username?.trim() ||
+    authUser?.telegramUsername?.trim() ||
+    null;
+  const telegramId =
+    authUser?.telegramId ??
+    (tgUser?.id != null ? String(tgUser.id) : null);
+
+  if (me) {
+    return {
+      ...me,
+      firstName: me.firstName?.trim() ? me.firstName : tgFirst,
+      lastName: me.lastName?.trim() ? me.lastName : tgLast,
+      telegramUsername: me.telegramUsername ?? tgUsername,
+    };
+  }
+
+  if (!authUser?.id || !telegramId) return null;
+
+  return {
+    id: authUser.id,
+    telegramId,
+    telegramUsername: tgUsername,
+    firstName: tgFirst,
+    lastName: tgLast,
+    locale: authUser.locale ?? 'uz',
+    phone: null,
+    birthDate: null,
+    createdAt: '',
+    updatedAt: '',
+  };
 }
 
 function errorMessage(
@@ -61,7 +112,7 @@ function CheckoutForm({
     useCreateOrderMutation();
 
   const subtotal = cartItems.reduce(
-    (sum, line) => sum + line.unitPriceCents * line.quantity,
+    (sum, line) => sum + line.unitPriceUzs * line.quantity,
     0,
   );
 
@@ -129,6 +180,9 @@ function CheckoutForm({
                 items: cartItems.map((l) => ({
                   productId: l.productId,
                   quantity: l.quantity,
+                  ...(l.sizeId !== DEFAULT_CART_SIZE_ID
+                    ? { sizeId: l.sizeId }
+                    : {}),
                 })),
                 deliveryPhone: phone.trim() || undefined,
                 deliveryFirstName: firstName.trim() || undefined,
@@ -153,14 +207,18 @@ export function CheckoutPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const token = useAppSelector((s) => s.auth.accessToken);
+  const authUser = useAppSelector((s) => s.auth.user);
   const cartItems = useAppSelector((s) => s.cart.items);
   const { isTelegramAuthPending, telegramSignInError } = useTelegramSession();
+  const tgSdkUser = useSignal(initDataUser);
 
-  const { data: me, isLoading: meLoading, isError: meError } = useGetMeQuery(
-    undefined,
-    {
-      skip: !token,
-    },
+  const { data: me, isLoading: meLoading } = useGetMeQuery(undefined, {
+    skip: !token,
+  });
+
+  const checkoutProfile = useMemo(
+    () => mergeCheckoutProfile(me, authUser, tgSdkUser ?? undefined),
+    [me, authUser, tgSdkUser],
   );
 
   if (!token) {
@@ -212,7 +270,7 @@ export function CheckoutPage() {
     );
   }
 
-  if (meLoading && !me) {
+  if (meLoading && !checkoutProfile) {
     return (
       <div className="tma-page tma-page--centered">
         <Spinner size="l" />
@@ -220,7 +278,7 @@ export function CheckoutPage() {
     );
   }
 
-  if (meError || !me) {
+  if (!checkoutProfile) {
     return (
       <div className="tma-page">
         <div style={{ marginBottom: 12 }}>
@@ -233,6 +291,10 @@ export function CheckoutPage() {
   }
 
   return (
-    <CheckoutForm key={me.id} me={me} cartItems={cartItems} />
+    <CheckoutForm
+      key={me ? `${me.id}:${me.updatedAt}` : `${checkoutProfile.id}:telegram`}
+      me={checkoutProfile}
+      cartItems={cartItems}
+    />
   );
 }
